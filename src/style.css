@@ -1,0 +1,98 @@
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #f5f5f5;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  --color_mizuki:#DDAACC;
+
+  --bg_shadow_up: rgba(200, 200, 200, 0.01);
+  --bg_shadow_down: rgba(200, 200, 200, 0.5);
+
+  --bg_mainbox: rgba(250, 250, 250, 0.5);
+  --bg_search: rgba(250, 250, 250, 0.8);
+  --search-border: #cccccc;
+  --search_logo: #000;
+
+  --bg_selection: #eeeeeea9;
+  --bg_selection_hover: #d8d8d8c4;
+  --bg_modal:rgba(200,200,200,0.95);
+
+  font: 10px/63.5% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #ced9ec;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    --bg_shadow_up: rgba(50, 50, 50, 0.01);
+    --bg_shadow_down: rgba(50, 50, 50, 0.5);
+    --bg_mainbox: rgba(5, 5, 5, 0.5);
+    --bg_search: rgba(50, 50, 50, 0.8);
+    --search-border: #494949;
+
+    --search_logo: #e7e7e7;
+    --bg_selection: #333333c0;
+    --bg_selection_hover: #525252;
+
+    --bg_modal:rgba(50,50,50,0.95);
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+#app {
+  height: 100vh;
+  width: 100%;
+  background-image:
+    linear-gradient(var(--bg_shadow_up), var(--bg_shadow_down)),
+    url(./assets/1.png);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+li {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+button {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+}
