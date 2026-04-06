@@ -459,7 +459,6 @@ function editConfirm() {
   .main {
     flex: 8;
     display: flex;
-    justify-content: center;
     align-items: center;
     width: 100%;
     flex-direction: column;
