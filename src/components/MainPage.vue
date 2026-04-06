@@ -75,8 +75,22 @@
           animation="300"
           ghost-class="ghost"
         >
-          <template #item="{ element }" :key="element">
+          <template #item="{ element, index }" :key="element">
             <div class="grid-item box_bg" @click="goWebsite(element.url)">
+              <div
+                class="icon delete_ico"
+                title="删除"
+                @click.stop="confirmDeleteWeblistItem(index)"
+              >
+                <delete_ico />
+              </div>
+              <div
+                class="icon edit_ico"
+                title="编辑"
+                @click.stop="openEdit(element, index)"
+              >
+                <menu_ico />
+              </div>
               <template v-if="element.url && element.iconUrl.length > 0">
                 <img
                   :src="element.iconUrl"
@@ -84,14 +98,12 @@
                   class="avatar-img"
                 />
               </template>
-
               <template v-else>
                 <div class="avatar-text">
                   {{ getInitial(element.webName) }}
                 </div>
               </template>
-
-              <p class="name-label">{{ element.webName }}</p>
+              <div class="name-label">{{ element.webName }}</div>
             </div>
           </template>
         </draggable>
@@ -111,55 +123,74 @@
     </footer>
   </section>
   <transition name="fade">
-    <div v-show="showModal" class="modal-mask" @click.self="showModal = false">
-      <div class="modal-container box_bg">
-        <div class="modal-content">
-          <h1>设置背景图片</h1>
-          <input
-            type="file"
-            accept="image/png,image/jpg,image/jpeg"
-            @change="uploadBackground"
-          />
-        </div>
-        <div class="modal-button-list">
-          <button class="btn confirm" @click="showModal = false">确定</button>
-          <button class="btn" @click="showModal = false">关闭</button>
-        </div>
-      </div>
-    </div>
+    <Modal :show="showModal" @close="closeModal">
+      <h1>设置背景图片</h1>
+      <input
+        type="file"
+        accept="image/png,image/jpg,image/jpeg"
+        @change="uploadBackground"
+      />
+    </Modal>
   </transition>
   <transition name="fade">
-    <div
-      v-show="showModal_add"
-      class="modal-mask"
-      @click.self="showModal_add = false"
+    <Modal
+      :show="showModal_add"
+      :confirm="true"
+      :disabled="!isAddLegal"
+      width="30%"
+      height="25%"
+      minHeight="300px"
+      minWidth="300px"
+      :doConfirm="addConfirm"
+      @close="closeModalAdd"
     >
-      <div class="modal-container add-containter box_bg">
-        <div class="modal-content">
-          <h1>添加常用URL</h1>
-          <div class="add-list">
-            <div class="list-item">
-              <h2>名称 *</h2>
-              <input type="text" v-model="addWebsite.webName" />
-            </div>
-            <div class="list-item">
-              <h2>URL *</h2>
-              <input type="text" v-model="addWebsite.url" />
-            </div>
-            <div class="list-item">
-              <h2>图标URL</h2>
-              <input type="text" v-model="addWebsite.iconUrl" />
-            </div>
-          </div>
+      <div class="list-container">
+        <h1>添加常用URL</h1>
+        <div class="list-item">
+          <h2>名称 *</h2>
+          <input type="text" v-model="addWebsite.webName" />
         </div>
-        <div class="modal-button-list">
-          <button class="btn confirm" @click="addConfirm" :disabled="!isLegal">
-            确定
-          </button>
-          <button class="btn" @click="showModal_add = false">关闭</button>
+        <div class="list-item">
+          <h2>URL *</h2>
+          <input type="text" v-model="addWebsite.url" />
+        </div>
+        <div class="list-item">
+          <h2>图标URL</h2>
+          <input type="text" v-model="addWebsite.iconUrl" />
         </div>
       </div>
-    </div>
+    </Modal>
+  </transition>
+  <transition name="fade">
+    <Modal
+      :show="showModal_edit"
+      :confirm="true"
+      :disabled="!isEditLegal"
+      width="30%"
+      height="25%"
+      minHeight="300px"
+      minWidth="300px"
+      :doConfirm="editConfirm"
+      @close="closeModalEdit"
+    >
+      <div class="edit-container">
+        <div class="list-container">
+          <h1>修改</h1>
+          <div class="list-item">
+            <h2>名称 *</h2>
+            <input type="text" v-model="editWebsite.webName" />
+          </div>
+          <div class="list-item">
+            <h2>URL *</h2>
+            <input type="text" v-model="editWebsite.url" />
+          </div>
+          <div class="list-item">
+            <h2>图标URL</h2>
+            <input type="text" v-model="editWebsite.iconUrl" />
+          </div>
+        </div>
+      </div>
+    </Modal>
   </transition>
 </template>
 <script setup lang="ts">
@@ -172,7 +203,17 @@ import bing_logo from "../assets/bing-color.svg";
 import search_logo from "../assets/magnifier-search.svg";
 import settings from "../assets/settings.svg";
 import add from "../assets/add.svg";
-import type { FrequentWebsite, MyDate } from "../types/types";
+import delete_ico from "../assets/delete.svg";
+import menu_ico from "../assets/menu.svg";
+import type { FrequentWebsite, MyDate, SelectedWebsite } from "../types/types";
+import {
+  getFromLocalStorage,
+  addToLocalStorage,
+  doGetImgBase64,
+  doSaveImgBase64,
+  setEngine,
+} from "../../tools/useCache";
+import Modal from "./Modal.vue";
 
 let appNode: HTMLDivElement | undefined;
 const nowDate = new Date();
@@ -188,6 +229,7 @@ const time = reactive<MyDate>({
 });
 const showModal = ref(false);
 const showModal_add = ref(false);
+const showModal_edit = ref(false);
 // 当前选中搜索引擎
 const searchEngine = ref(0);
 // 响应式计算时间
@@ -204,8 +246,14 @@ const addWebsite = reactive<FrequentWebsite>({
   webName: "",
   iconUrl: "",
 });
+const editWebsite = reactive<SelectedWebsite>({
+  index: -1,
+  url: "",
+  webName: "",
+  iconUrl: "",
+});
 // 判断是否合法输入
-const isLegal = computed(() => {
+const isAddLegal = computed(() => {
   return (
     addWebsite.url !== undefined &&
     addWebsite.webName !== undefined &&
@@ -213,9 +261,17 @@ const isLegal = computed(() => {
     addWebsite.webName.length > 0
   );
 });
+const isEditLegal = computed(() => {
+  return (
+    editWebsite.url !== undefined &&
+    editWebsite.webName !== undefined &&
+    editWebsite.url.length > 0 &&
+    editWebsite.webName.length > 0
+  );
+});
 let webList = ref<FrequentWebsite[]>([]);
 // 读取主页添加的网站
-const browserWebList = localStorage.getItem("webList");
+const browserWebList = getFromLocalStorage("webList");
 if (browserWebList) {
   const list = JSON.parse(browserWebList) as FrequentWebsite[];
   webList.value = list;
@@ -268,6 +324,21 @@ watch(showModal_add, () => {
   addWebsite.iconUrl = "";
   addWebsite.webName = "";
 });
+watch(showModal_edit, (newValue) => {
+  if (!newValue) {
+    editWebsite.index = -1;
+    editWebsite.url = "";
+    editWebsite.iconUrl = "";
+    editWebsite.webName = "";
+  }
+});
+watch(
+  webList,
+  () => {
+    addToLocalStorage<FrequentWebsite[]>("webList", webList.value);
+  },
+  { deep: true },
+);
 function doSearch() {
   switch (searchEngine.value) {
     case 0:
@@ -289,15 +360,19 @@ function onEnterPress(e: KeyboardEvent) {
 }
 // 写入本地缓存
 function setCache() {
-  window.localStorage.setItem("engine", String(searchEngine.value));
+  setEngine(searchEngine.value);
 }
 // 读取本地缓存
 function getCache() {
-  const searchEngineCache = window.localStorage.getItem("engine");
-  // searchEngine.value = Number(searchEngineCache);
-  // chrome.storage.local.get(["backgroundImageBase64"], (result) => {
-  //   backgroundImageBase64.value = result["backgroundImageBase64"] as string;
-  // });
+  const searchEngineCache = getFromLocalStorage("engine");
+  if (searchEngineCache) searchEngine.value = parseInt(searchEngineCache);
+  else {
+    searchEngine.value = 0;
+    setCache();
+  }
+  doGetImgBase64((result) => {
+    if (result) backgroundImageBase64.value = result;
+  });
 }
 // 选择图片
 const uploadBackground = (e: Event) => {
@@ -309,9 +384,8 @@ const uploadBackground = (e: Event) => {
   reader.onload = () => {
     const result = reader.result as string;
     // 永久保存到本地
-    // chrome.storage.local.set({ backgroundImageBase64: result }, () => {
-    //   backgroundImageBase64.value = result;
-    // });
+    doSaveImgBase64(result);
+    backgroundImageBase64.value = result;
   };
   reader.readAsDataURL(file); // 转为 Base64
 };
@@ -331,12 +405,40 @@ function addToHome(item: FrequentWebsite) {
     url: item.url,
     iconUrl: item.iconUrl,
   });
-  localStorage.setItem("webList", JSON.stringify(webList.value));
+  addToLocalStorage<FrequentWebsite[]>("webList", webList.value);
   showModal_add.value = false;
 }
 // 确认添加到主页
 function addConfirm() {
   addToHome(addWebsite);
+}
+// 关闭弹窗
+function closeModal() {
+  showModal.value = false;
+}
+function closeModalAdd() {
+  showModal_add.value = false;
+}
+function closeModalEdit() {
+  showModal_edit.value = false;
+}
+// 删除置顶网页
+function confirmDeleteWeblistItem(index: number) {
+  webList.value.splice(index, 1);
+}
+// 打开修改界面
+function openEdit(website: FrequentWebsite, index: number) {
+  showModal_edit.value = true;
+  editWebsite.index = index;
+  editWebsite.iconUrl = website.iconUrl;
+  editWebsite.url = website.url;
+  editWebsite.webName = website.webName;
+}
+// 确认修改
+function editConfirm() {
+  webList.value[editWebsite.index].url = editWebsite.url;
+  webList.value[editWebsite.index].iconUrl = editWebsite.iconUrl;
+  webList.value[editWebsite.index].webName = editWebsite.webName;
 }
 </script>
 <style lang="scss">
@@ -587,63 +689,6 @@ function addConfirm() {
     transform: scale(0.9);
   }
 }
-/* 全屏蒙版 */
-.modal-mask {
-  position: fixed;
-  inset: 0; /* top/bottom/left/right: 0 */
-  background-color: rgba(0, 0, 0, 0.5); /* 黑色半透明 */
-
-  /* 使用 Flex 布局让子元素垂直水平居中 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 1000; /* 确保在最顶层 */
-}
-
-/* 弹窗容器 */
-.modal-container {
-  width: 50%;
-  height: 30%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-
-  /* 防止内容溢出圆角 */
-  overflow: hidden;
-
-  color: var(--text);
-  background-color: var(--bg_modal);
-  backdrop-filter: unset;
-}
-
-.modal-content {
-  flex: 1;
-}
-
-.modal-button-list {
-  display: flex;
-  gap: 1rem;
-  justify-content: end;
-}
-.btn {
-  align-self: flex-end;
-  padding: 8px 16px;
-  cursor: pointer;
-  border-radius: 6px;
-  border: 1px solid var(--text-h);
-  transition: all 0.3s ease;
-  &:active {
-    transform: scale(0.95);
-  }
-}
-.confirm:hover {
-  border-color: var(--color_mizuki);
-  color: var(--color_mizuki);
-}
 .add-url {
   position: fixed;
   height: 5rem;
@@ -661,22 +706,21 @@ function addConfirm() {
     transform: scale(0.9);
   }
 }
-.add-containter {
-  width: 30%;
-  min-width: 300px;
-  height: 25%;
-  min-height: 300px;
+.list-item {
+  h2 {
+    font-size: clamp(1.5rem, 1.5vw, 2rem);
+    transition: all 0.3s ease;
+  }
+  &:has(input[type="text"]:focus) h2 {
+    color: var(--color_mizuki);
+  }
 }
-.add-list {
+.list-container {
   width: 100%;
-  margin: 3rem 0;
-  .list-item {
-    h2 {
-      transition: all 0.3s ease;
-    }
-    &:has(input[type="text"]:focus) h2 {
-      color: var(--color_mizuki);
-    }
+  display: flex;
+  flex-direction: column;
+  h1 {
+    font-size: clamp(2rem, 2vw, 4rem);
   }
   input[type="text"] {
     box-sizing: border-box;
@@ -724,6 +768,7 @@ function addConfirm() {
 }
 
 .grid-item {
+  position: relative;
   aspect-ratio: 1 / 1; /* 保持正方形 */
   border-radius: 2rem;
   display: flex;
@@ -737,8 +782,35 @@ function addConfirm() {
     box-shadow 0.2s;
   overflow: hidden;
   gap: 0.5rem;
+  &:hover .icon {
+    opacity: 1;
+  }
+  .delete_ico {
+    opacity: 0;
+    top: 5%;
+    right: 5%;
+  }
+  .edit_ico {
+    opacity: 0;
+    bottom: 30%;
+    right: 5%;
+  }
 }
-
+.icon {
+  height: 18%;
+  width: 18%;
+  position: absolute;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  &:hover {
+    background-color: var(--bg_modal);
+  }
+  svg {
+    fill: var(--search_logo);
+  }
+}
 .grid-item:active {
   cursor: grabbing;
 }
@@ -764,8 +836,14 @@ function addConfirm() {
 }
 
 .name-label {
-  margin-top: 8px;
   font-size: 1.5rem;
+  width: 90%;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 1rem 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 拖拽时的样式（幽灵效果） */

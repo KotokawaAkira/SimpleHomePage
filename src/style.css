@@ -15,7 +15,7 @@
   --heading: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  --color_mizuki:#DDAACC;
+  --color_mizuki: #ddaacc;
 
   --bg_shadow_up: rgba(200, 200, 200, 0.01);
   --bg_shadow_down: rgba(200, 200, 200, 0.5);
@@ -27,7 +27,9 @@
 
   --bg_selection: #eeeeeea9;
   --bg_selection_hover: #d8d8d8c4;
-  --bg_modal:rgba(200,200,200,0.95);
+  --bg_modal: rgba(200, 200, 200, 0.95);
+
+  --btn_disable: #a7a7a7;
 
   font: 10px/63.5% var(--sans);
   letter-spacing: 0.18px;
@@ -63,7 +65,9 @@
     --bg_selection: #333333c0;
     --bg_selection_hover: #525252;
 
-    --bg_modal:rgba(50,50,50,0.95);
+    --bg_modal: rgba(50, 50, 50, 0.95);
+
+    --btn_disable: #5d5d5d;
   }
 
   #social .button-icon {
@@ -73,9 +77,9 @@
 #app {
   height: 100vh;
   width: 100%;
-  background-image:
+  /* background-image:
     linear-gradient(var(--bg_shadow_up), var(--bg_shadow_down)),
-    url(./assets/1.png);
+    url(./assets/1.png); */
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
