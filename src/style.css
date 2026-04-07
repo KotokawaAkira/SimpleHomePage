@@ -16,7 +16,7 @@
   --mono: ui-monospace, Consolas, monospace;
 
   --color_mizuki: #ddaacc;
-
+  --color_alert:#ff1f1f;
   --bg_shadow_up: rgba(200, 200, 200, 0.01);
   --bg_shadow_down: rgba(200, 200, 200, 0.5);
 
@@ -30,6 +30,7 @@
   --bg_modal: rgba(200, 200, 200, 0.95);
 
   --btn_disable: #a7a7a7;
+  --btn_hover: #eee;
 
   font: 10px/63.5% var(--sans);
   letter-spacing: 0.18px;
@@ -61,13 +62,14 @@
     --bg_search: rgba(50, 50, 50, 0.8);
     --search-border: #494949;
 
-    --search_logo: #e7e7e7;
+    --search_logo: #757575;
     --bg_selection: #333333c0;
     --bg_selection_hover: #525252;
 
     --bg_modal: rgba(50, 50, 50, 0.95);
 
     --btn_disable: #5d5d5d;
+    --btn_hover: #0e0e0e;
   }
 
   #social .button-icon {
@@ -77,9 +79,6 @@
 #app {
   height: 100vh;
   width: 100%;
-  /* background-image:
-    linear-gradient(var(--bg_shadow_up), var(--bg_shadow_down)),
-    url(./assets/1.png); */
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

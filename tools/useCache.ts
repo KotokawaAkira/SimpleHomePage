@@ -1,7 +1,7 @@
+// 储存图片base64到浏览器存储
 function doSaveImgBase64(imgBase64: string) {
   const isChromeExtension =
     typeof chrome !== "undefined" && !!chrome.runtime && !!chrome.runtime.id;
-
   if (isChromeExtension) {
     // 永久保存到本地
     chrome.storage.local.set({ backgroundImageBase64: imgBase64 });
@@ -9,11 +9,10 @@ function doSaveImgBase64(imgBase64: string) {
     window.localStorage.setItem("backgroundImageBase64", imgBase64);
   }
 }
-
+// 从浏览器存储获取图片base64
 function doGetImgBase64(callback: (result: string | undefined | null) => void) {
   const isChromeExtension =
     typeof chrome !== "undefined" && !!chrome.runtime && !!chrome.runtime.id;
-
   if (isChromeExtension) {
     chrome.storage.local.get(["backgroundImageBase64"], (result) => {
       callback(result["backgroundImageBase64"] as string);
@@ -24,13 +23,23 @@ function doGetImgBase64(callback: (result: string | undefined | null) => void) {
   }
 }
 function getFromLocalStorage(key: string) {
-  return localStorage.getItem(key);
+  return window.localStorage.getItem(key);
 }
 function addToLocalStorage<V>(key: string, value: V) {
-  localStorage.setItem(key, JSON.stringify(value));
+  window.localStorage.setItem(key, JSON.stringify(value));
 }
 function setEngine(index: number) {
-  localStorage.setItem("engine", String(index));
+  window.localStorage.setItem("engine", String(index));
+}
+// 从浏览器存储移除图片base64
+function removeImgStorage() {
+  const isChromeExtension =
+    typeof chrome !== "undefined" && !!chrome.runtime && !!chrome.runtime.id;
+  if (isChromeExtension) {
+    chrome.storage.local.remove("backgroundImageBase64");
+  } else {
+    window.localStorage.removeItem("backgroundImageBase64");
+  }
 }
 export {
   doGetImgBase64,
@@ -38,4 +47,5 @@ export {
   getFromLocalStorage,
   addToLocalStorage,
   setEngine,
+  removeImgStorage,
 };

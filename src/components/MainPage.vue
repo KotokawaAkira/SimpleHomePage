@@ -110,26 +110,31 @@
       </div>
     </main>
     <footer class="foot">
-      <button class="settings box_bg" title="设置" @click="showModal = true">
-        <settings />
-      </button>
-      <button
-        class="add-url box_bg"
-        title="添加常用URL"
-        @click="showModal_add = true"
-      >
-        <add />
-      </button>
+      <div class="setting-list">
+        <button
+          class="add-url box_bg"
+          title="添加常用URL"
+          @click="showModal_add = true"
+        >
+          <add />
+        </button>
+        <button class="settings box_bg" title="设置" @click="showModal = true">
+          <settings />
+        </button>
+      </div>
     </footer>
   </section>
   <transition name="fade">
     <Modal :show="showModal" @close="closeModal">
-      <h1>设置背景图片</h1>
-      <input
-        type="file"
-        accept="image/png,image/jpg,image/jpeg"
-        @change="uploadBackground"
-      />
+      <div class="setBackgroundImg">
+        <h1>设置背景图片</h1>
+        <input
+          type="file"
+          accept="image/png,image/jpg,image/jpeg"
+          @change="uploadBackground"
+        />
+        <button class="restoreImg" @click="restoreImg">恢复默认图片</button>
+      </div>
     </Modal>
   </transition>
   <transition name="fade">
@@ -138,7 +143,7 @@
       :confirm="true"
       :disabled="!isAddLegal"
       width="30%"
-      height="25%"
+      height="30%"
       minHeight="300px"
       minWidth="300px"
       :doConfirm="addConfirm"
@@ -167,7 +172,7 @@
       :confirm="true"
       :disabled="!isEditLegal"
       width="30%"
-      height="25%"
+      height="30%"
       minHeight="300px"
       minWidth="300px"
       :doConfirm="editConfirm"
@@ -205,6 +210,7 @@ import settings from "../assets/settings.svg";
 import add from "../assets/add.svg";
 import delete_ico from "../assets/delete.svg";
 import menu_ico from "../assets/menu.svg";
+import defaultImg from "../assets/1.png";
 import type { FrequentWebsite, MyDate, SelectedWebsite } from "../types/types";
 import {
   getFromLocalStorage,
@@ -212,8 +218,10 @@ import {
   doGetImgBase64,
   doSaveImgBase64,
   setEngine,
+  removeImgStorage,
 } from "../../tools/useCache";
 import Modal from "./Modal.vue";
+import { readImgToBase64 } from "../../tools/useFile";
 
 let appNode: HTMLDivElement | undefined;
 const nowDate = new Date();
@@ -371,6 +379,7 @@ function getCache() {
     setCache();
   }
   doGetImgBase64((result) => {
+    backgroundImageBase64.value = defaultImg;
     if (result) backgroundImageBase64.value = result;
   });
 }
@@ -379,15 +388,12 @@ const uploadBackground = (e: Event) => {
   const fileElement = e.target as HTMLInputElement;
   const file = fileElement.files?.[0];
   if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    const result = reader.result as string;
-    // 永久保存到本地
+  readImgToBase64(file, (result) => {
+    // 写入浏览器存储
     doSaveImgBase64(result);
+    // 设置图片
     backgroundImageBase64.value = result;
-  };
-  reader.readAsDataURL(file); // 转为 Base64
+  });
 };
 // 获取首字母并转大写的逻辑
 const getInitial = (name: string) => {
@@ -440,6 +446,11 @@ function editConfirm() {
   webList.value[editWebsite.index].iconUrl = editWebsite.iconUrl;
   webList.value[editWebsite.index].webName = editWebsite.webName;
 }
+// 恢复默认图片
+function restoreImg() {
+  removeImgStorage();
+  backgroundImageBase64.value = defaultImg;
+}
 </script>
 <style lang="scss">
 .home {
@@ -475,7 +486,7 @@ function editConfirm() {
       border-radius: 2rem;
       background: (var(--bg_mainbox));
       backdrop-filter: blur(6px);
-
+      z-index: 10;
       .show-time {
         display: flex;
         align-items: center;
@@ -539,6 +550,7 @@ function editConfirm() {
             justify-content: center;
             align-items: center;
             height: 100%;
+            max-width: 6rem;
             position: relative;
             .selection-box {
               position: relative;
@@ -548,7 +560,7 @@ function editConfirm() {
             }
           }
           input[type="text"] {
-            padding: 0 1rem 0 1rem;
+            padding: 0 0.3rem;
             flex: 8;
             background: none;
             border: none;
@@ -558,6 +570,8 @@ function editConfirm() {
           }
           .do-search {
             flex: 1;
+            height: 100%;
+            max-width: 6rem;
             .logo {
               padding: 0;
               svg {
@@ -671,40 +685,43 @@ function editConfirm() {
   background: (var(--bg_mainbox));
   backdrop-filter: blur(6px);
 }
-.settings {
+.setting-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: fixed;
-  height: 5rem;
-  width: 5rem;
-  left: 3vw;
-  bottom: 5vh;
-  padding: 1rem;
-  box-sizing: border-box;
-  cursor: pointer;
-  svg {
-    fill: var(--search_logo);
-  }
-  &:active svg {
-    transition: all 0.3s ease;
-    transform: scale(0.9);
-  }
-}
-.add-url {
-  position: fixed;
-  height: 5rem;
-  width: 5rem;
   right: 3vw;
   bottom: 5vh;
-  padding: 1rem;
-  box-sizing: border-box;
-  cursor: pointer;
+  gap: 1rem;
+  .settings {
+    height: 5rem;
+    width: 5rem;
+    left: 3vw;
+    bottom: 5vh;
+    padding: 1rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    &:active svg {
+      transition: all 0.3s ease;
+      transform: scale(0.9);
+    }
+  }
   svg {
     fill: var(--search_logo);
   }
-  &:active svg {
-    transition: all 0.3s ease;
-    transform: scale(0.9);
+  .add-url {
+    height: 5rem;
+    width: 5rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    &:active svg {
+      transition: all 0.3s ease;
+      transform: scale(0.9);
+    }
   }
 }
+
 .list-item {
   h2 {
     font-size: clamp(1.5rem, 1.5vw, 2rem);
@@ -728,7 +745,7 @@ function editConfirm() {
     width: 100%;
     outline: none;
     border: 1px solid var(--text-h);
-    padding: 0 1rem 0 1rem;
+    padding: 0 0.5rem;
     flex: 8;
     background: none;
     outline: none;
@@ -740,6 +757,22 @@ function editConfirm() {
     }
   }
 }
+.setBackgroundImg {
+  .restoreImg {
+    border-radius: 6px;
+    padding: 0.7rem;
+    color: var(--color_alert);
+    cursor: pointer;
+    border: 1px solid var(--color_alert);
+    transition: all 0.3s ease;
+    &:hover {
+      background-color: var(--btn_hover);
+    }
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
 // 排序样式
 .container {
   border-radius: 2rem;
@@ -748,7 +781,7 @@ function editConfirm() {
   min-width: 820px;
   max-height: 300px;
   overflow-y: scroll;
-  padding: 0 5px;
+  padding: 0 5px 0 0;
   &::-webkit-scrollbar {
     width: 5px;
   }
@@ -791,8 +824,8 @@ function editConfirm() {
   }
   .edit_ico {
     opacity: 0;
-    bottom: 30%;
-    right: 5%;
+    top: 5%;
+    left: 5%;
   }
 }
 .icon {

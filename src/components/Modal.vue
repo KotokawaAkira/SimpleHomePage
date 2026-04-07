@@ -49,7 +49,7 @@ const confirm = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* 全屏蒙版 */
 .box_bg {
   border-radius: 2rem;
@@ -104,15 +104,19 @@ const confirm = () => {
   border-radius: 6px;
   border: 1px solid var(--text-h);
   transition: all 0.3s ease;
-  &:active {
+  &:not(:disabled):active {
     transform: scale(0.95);
   }
+  &:not(:disabled):hover {
+    background-color: var(--btn_hover);
+  }
 }
-.confirm:hover {
+.confirm:not(:disabled):hover {
   border-color: var(--color_mizuki);
   color: var(--color_mizuki);
 }
 .confirm:disabled {
   border-color: var(--btn_disable);
+  cursor: not-allowed;
 }
 </style>
