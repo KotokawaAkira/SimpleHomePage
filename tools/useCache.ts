@@ -1,3 +1,5 @@
+import type { SearchEngine } from "../src/types/searchConfig";
+
 // 储存图片base64到浏览器存储
 function doSaveImgBase64(imgBase64: string) {
   const isChromeExtension =
@@ -28,8 +30,8 @@ function getFromLocalStorage(key: string) {
 function addToLocalStorage<V>(key: string, value: V) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
-function setEngine(index: number) {
-  window.localStorage.setItem("engine", String(index));
+function setEngine(engine:SearchEngine) {
+  window.localStorage.setItem("engine", JSON.stringify(engine));
 }
 // 从浏览器存储移除图片base64
 function removeImgStorage() {

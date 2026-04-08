@@ -21,36 +21,31 @@
                 title="更换搜索引擎"
                 @click.stop="toggleDropdown"
               >
-                <transition name="show" mode="out-in">
-                  <button class="logo" v-if="searchEngine === 0">
-                    <bing_logo />
-                  </button>
-                </transition>
-                <transition name="show" mode="out-in">
-                  <button class="logo" v-if="searchEngine === 1">
-                    <google_logo />
-                  </button>
-                </transition>
-                <transition name="show" mode="out-in">
-                  <button class="logo" v-if="searchEngine === 2">
-                    <baidu_logo />
+                <transition
+                  name="show"
+                  mode="out-in"
+                  v-for="engine in EnginConfig"
+                  :key="'A' + engine.index"
+                >
+                  <button
+                    class="logo"
+                    v-if="searchEngine.index === engine.index"
+                  >
+                    <component :is="engine.logo_url" />
                   </button>
                 </transition>
               </div>
               <!-- 弹出选项框 -->
               <transition name="fade">
                 <div v-show="isOpen" class="options-box">
-                  <div class="option-item" @click="selectOption(0)">
-                    <bing_logo />
-                    <span>必应</span>
-                  </div>
-                  <div class="option-item" @click="selectOption(1)">
-                    <google_logo />
-                    <span>谷歌</span>
-                  </div>
-                  <div class="option-item" @click="selectOption(2)">
-                    <baidu_logo />
-                    <span>百度</span>
+                  <div
+                    class="option-item"
+                    v-for="engine in EnginConfig"
+                    :key="'B' + engine.index"
+                    @click="selectOption(engine)"
+                  >
+                    <component :is="engine.logo_url" />
+                    <span>{{ engine.engineName }}</span>
                   </div>
                 </div>
               </transition>
@@ -208,15 +203,13 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
 import draggable from "vuedraggable";
-import baidu_logo from "../assets/baidu-color.svg";
-import google_logo from "../assets/google-color.svg";
-import bing_logo from "../assets/bing-color.svg";
 import search_logo from "../assets/magnifier-search.svg";
 import settings from "../assets/settings.svg";
 import add from "../assets/add.svg";
 import delete_ico from "../assets/delete.svg";
 import menu_ico from "../assets/menu.svg";
 import defaultImg from "../assets/1.png";
+import { type SearchEngine, EnginConfig } from "../types/searchConfig";
 import type { FrequentWebsite, MyDate, SelectedWebsite } from "../types/types";
 import {
   getFromLocalStorage,
@@ -245,7 +238,7 @@ const showModal = ref(false);
 const showModal_add = ref(false);
 const showModal_edit = ref(false);
 // 当前选中搜索引擎
-const searchEngine = ref(0);
+const searchEngine = ref<SearchEngine>(EnginConfig[0]);
 // 响应式计算时间
 const timeString = computed(
   () =>
@@ -305,8 +298,8 @@ const isOpen = ref(false);
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
 };
-const selectOption = (num: number) => {
-  searchEngine.value = num;
+const selectOption = (engine: SearchEngine) => {
+  searchEngine.value = engine;
   isOpen.value = false;
 };
 // 点击外部自动关闭
@@ -355,19 +348,13 @@ watch(
   },
   { deep: true },
 );
+// 打开新页面
+function goWebsite(url: string) {
+  window.open(url);
+}
 // 搜索逻辑
 function doSearch() {
-  switch (searchEngine.value) {
-    case 0:
-      window.open(`https://cn.bing.com/search?q=${inputText.value}`);
-      break;
-    case 1:
-      window.open(`https://www.google.com/search?q=${inputText.value}`);
-      break;
-    case 2:
-      window.open(`https://www.baidu.com/s?wd=${inputText.value}`);
-      break;
-  }
+  goWebsite(searchEngine.value.url + inputText.value);
 }
 // 监听键盘enter
 function onEnterPress(e: KeyboardEvent) {
@@ -383,9 +370,10 @@ function setCache() {
 // 读取本地缓存
 function getCache() {
   const searchEngineCache = getFromLocalStorage("engine");
-  if (searchEngineCache) searchEngine.value = parseInt(searchEngineCache);
+  if (searchEngineCache)
+    searchEngine.value = JSON.parse(searchEngineCache) as SearchEngine;
   else {
-    searchEngine.value = 0;
+    searchEngine.value = EnginConfig[0];
     setCache();
   }
   doGetImgBase64((result) => {
@@ -409,10 +397,6 @@ function uploadBackground(e: Event) {
 function getInitial(name: string) {
   if (!name) return "?";
   return name.charAt(0).toUpperCase();
-}
-// 打开新页面
-function goWebsite(url: string) {
-  window.open(url);
 }
 // 添加到主页
 function addToHome(item: FrequentWebsite) {
@@ -654,9 +638,9 @@ function restoreImg() {
   justify-content: center;
   align-items: center;
   gap: 6px;
-  padding: 6px 2px;
+  padding: 6px 4px;
   cursor: pointer;
-  font-size: clamp(1rem, 1vw, 3rem);
+  font-size: clamp(1rem, 0.8vw, 1.5rem);
   transition: background 0.2s;
   height: clamp(2rem, 2.5vh, 5rem);
 }
