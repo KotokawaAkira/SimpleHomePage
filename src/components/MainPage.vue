@@ -37,6 +37,7 @@
                   </button>
                 </transition>
               </div>
+              <!-- 弹出选项框 -->
               <transition name="fade">
                 <div v-show="isOpen" class="options-box">
                   <div class="option-item" @click="selectOption(0)">
@@ -67,6 +68,7 @@
           </div>
         </section>
       </div>
+      <!-- 常用URL栏 -->
       <div class="container">
         <draggable
           v-model="webList"
@@ -110,6 +112,7 @@
       </div>
     </main>
     <footer class="foot">
+      <!-- 右下角图标 -->
       <div class="setting-list">
         <button
           class="add-url box_bg"
@@ -124,6 +127,7 @@
       </div>
     </footer>
   </section>
+  <!-- 设置 弹窗 -->
   <transition name="fade">
     <Modal :show="showModal" @close="closeModal">
       <div class="setBackgroundImg">
@@ -137,6 +141,7 @@
       </div>
     </Modal>
   </transition>
+  <!-- 添加常用URL 弹窗 -->
   <transition name="fade">
     <Modal
       :show="showModal_add"
@@ -166,6 +171,7 @@
       </div>
     </Modal>
   </transition>
+  <!-- 编辑 弹窗 -->
   <transition name="fade">
     <Modal
       :show="showModal_edit"
@@ -180,7 +186,7 @@
     >
       <div class="edit-container">
         <div class="list-container">
-          <h1>修改</h1>
+          <h1>编辑</h1>
           <div class="list-item">
             <h2>名称 *</h2>
             <input type="text" v-model="editWebsite.webName" />
@@ -327,6 +333,7 @@ watch(
   },
   { immediate: true },
 );
+// 监听弹窗是否弹出
 watch(showModal_add, () => {
   addWebsite.url = "";
   addWebsite.iconUrl = "";
@@ -340,6 +347,7 @@ watch(showModal_edit, (newValue) => {
     editWebsite.webName = "";
   }
 });
+// 监听网页列表
 watch(
   webList,
   () => {
@@ -347,6 +355,7 @@ watch(
   },
   { deep: true },
 );
+// 搜索逻辑
 function doSearch() {
   switch (searchEngine.value) {
     case 0:
@@ -360,6 +369,7 @@ function doSearch() {
       break;
   }
 }
+// 监听键盘enter
 function onEnterPress(e: KeyboardEvent) {
   if (e.key === "Enter") {
     doSearch();
@@ -384,7 +394,7 @@ function getCache() {
   });
 }
 // 选择图片
-const uploadBackground = (e: Event) => {
+function uploadBackground(e: Event) {
   const fileElement = e.target as HTMLInputElement;
   const file = fileElement.files?.[0];
   if (!file) return;
@@ -394,13 +404,13 @@ const uploadBackground = (e: Event) => {
     // 设置图片
     backgroundImageBase64.value = result;
   });
-};
-// 获取首字母并转大写的逻辑
-const getInitial = (name: string) => {
+}
+// 获取首字母并转大写
+function getInitial(name: string) {
   if (!name) return "?";
   return name.charAt(0).toUpperCase();
-};
-// 打开页面
+}
+// 打开新页面
 function goWebsite(url: string) {
   window.open(url);
 }
@@ -479,13 +489,15 @@ function restoreImg() {
       height: 60%;
       min-width: 820px;
       display: flex;
-      gap: 5rem;
+      gap: 3rem;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       border-radius: 2rem;
       background: (var(--bg_mainbox));
       backdrop-filter: blur(6px);
+      padding: 3rem 0 0 0;
+      box-sizing: border-box;
       z-index: 10;
       .show-time {
         display: flex;
