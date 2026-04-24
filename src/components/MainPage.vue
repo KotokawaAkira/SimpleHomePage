@@ -134,6 +134,22 @@
         />
         <button class="restoreImg" @click="restoreImg">恢复默认图片</button>
       </div>
+      <div class="page-redirect">
+        <div>页面跳转:</div>
+        <div
+          v-for="item in RedirectModeConfig"
+          class="page-redirect-option"
+          @click="changeRedirectModeBtnClick(item)"
+        >
+          <input
+            type="radio"
+            name="mode-redirect"
+            :value="item.value"
+            v-model="redirectMode.value"
+            @change="changeRedirectMode(item)"
+          /><label>{{ item.modeName }}</label>
+        </div>
+      </div>
     </Modal>
   </transition>
   <!-- 添加常用URL 弹窗 -->
@@ -221,7 +237,8 @@ import {
 } from "../../tools/useCache";
 import Modal from "./Modal.vue";
 import { readImgToBase64 } from "../../tools/useFile";
-
+import type { RedirectMode } from "../types/redirectModeConfig";
+import RedirectModeConfig from "../types/redirectModeConfig";
 let appNode: HTMLDivElement | undefined;
 const nowDate = new Date();
 // 响应式时间数据
@@ -259,6 +276,8 @@ const editWebsite = reactive<SelectedWebsite>({
   webName: "",
   iconUrl: "",
 });
+// 页面跳转模式
+const redirectMode = ref<RedirectMode>({ value: 0, modeName: "直接跳转" });
 // 判断是否合法输入
 const isAddLegal = computed(() => {
   return (
@@ -350,7 +369,14 @@ watch(
 );
 // 打开新页面
 function goWebsite(url: string) {
-  window.open(url);
+  switch (redirectMode.value.value) {
+    case 0:
+      window.location.href = url;
+      break;
+    case 1:
+      window.open(url);
+      break;
+  }
 }
 // 搜索逻辑
 function doSearch() {
@@ -369,6 +395,7 @@ function setCache() {
 }
 // 读取本地缓存
 function getCache() {
+  // 获取搜索引擎设置
   const searchEngineCache = getFromLocalStorage("engine");
   if (searchEngineCache)
     searchEngine.value = JSON.parse(searchEngineCache) as SearchEngine;
@@ -376,10 +403,14 @@ function getCache() {
     searchEngine.value = EnginConfig[0];
     setCache();
   }
+  // 获取图片
   doGetImgBase64((result) => {
     backgroundImageBase64.value = defaultImg;
     if (result) backgroundImageBase64.value = result;
   });
+  // 获取页面跳转方式
+  const mode = getFromLocalStorage("redirectMode");
+  if (mode) redirectMode.value = JSON.parse(mode) as RedirectMode;
 }
 // 选择图片
 function uploadBackground(e: Event) {
@@ -444,6 +475,15 @@ function editConfirm() {
 function restoreImg() {
   removeImgStorage();
   backgroundImageBase64.value = defaultImg;
+}
+// 修改页面跳转模式
+function changeRedirectMode(mode: RedirectMode) {
+  redirectMode.value.value = mode.value;
+  redirectMode.value.modeName = mode.modeName;
+  addToLocalStorage<RedirectMode>("redirectMode", mode);
+}
+function changeRedirectModeBtnClick(mode: RedirectMode) {
+  redirectMode.value = mode;
 }
 </script>
 <style lang="scss">
@@ -846,8 +886,7 @@ function restoreImg() {
 .avatar-img {
   width: 60%;
   height: 60%;
-  object-fit: cover;
-  border-radius: 50%;
+  object-fit: contain;
 }
 
 .avatar-text {
@@ -878,5 +917,27 @@ function restoreImg() {
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
+}
+.page-redirect {
+  margin: 2rem 0;
+  height: fit-content;
+  font-size: clamp(1rem, 1.5vw, 3rem);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  &-option {
+    width: fit-content;
+    height: fit-content;
+    padding: 0.5rem;
+    input[type="radio"] {
+      cursor: pointer;
+    }
+    input[type="radio"]:checked {
+      background-color: var(--color_mizuki);
+    }
+    label {
+      cursor: pointer;
+    }
+  }
 }
 </style>
