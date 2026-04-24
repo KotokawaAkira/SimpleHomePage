@@ -144,10 +144,13 @@
           <input
             type="radio"
             name="mode-redirect"
+            :id="`${item.value}/${item.modeName}`"
             :value="item.value"
             v-model="redirectMode.value"
             @change="changeRedirectMode(item)"
-          /><label>{{ item.modeName }}</label>
+          /><label :for="`${item.value}/${item.modeName}`">{{
+            item.modeName
+          }}</label>
         </div>
       </div>
     </Modal>
@@ -921,7 +924,7 @@ function changeRedirectModeBtnClick(mode: RedirectMode) {
 .page-redirect {
   margin: 2rem 0;
   height: fit-content;
-  font-size: clamp(1rem, 1.5vw, 3rem);
+  font-size: clamp(1.5rem, 1.5vw, 2rem);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -933,7 +936,7 @@ function changeRedirectModeBtnClick(mode: RedirectMode) {
       cursor: pointer;
     }
     input[type="radio"]:checked {
-      background-color: var(--color_mizuki);
+      accent-color: var(--color_mizuki);
     }
     label {
       cursor: pointer;
