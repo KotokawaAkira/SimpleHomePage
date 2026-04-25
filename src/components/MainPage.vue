@@ -139,7 +139,7 @@
         <div
           v-for="item in RedirectModeConfig"
           class="page-redirect-option"
-          @click="changeRedirectModeBtnClick(item)"
+          @click="changeRedirectMode(item)"
         >
           <input
             type="radio"
@@ -481,12 +481,8 @@ function restoreImg() {
 }
 // 修改页面跳转模式
 function changeRedirectMode(mode: RedirectMode) {
-  redirectMode.value.value = mode.value;
-  redirectMode.value.modeName = mode.modeName;
-  addToLocalStorage<RedirectMode>("redirectMode", mode);
-}
-function changeRedirectModeBtnClick(mode: RedirectMode) {
   redirectMode.value = mode;
+  addToLocalStorage<RedirectMode>("redirectMode", mode);
 }
 </script>
 <style lang="scss">
