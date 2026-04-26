@@ -6,6 +6,9 @@ function checkTimeLength(props: number) {
 function dayToChineseDay(props: number) {
   let chineseDay = "xx";
   switch (props) {
+    case 0:
+      chineseDay = "周日";
+      break;
     case 1:
       chineseDay = "周一";
       break;
@@ -23,9 +26,6 @@ function dayToChineseDay(props: number) {
       break;
     case 6:
       chineseDay = "周六";
-      break;
-    case 7:
-      chineseDay = "周日";
       break;
   }
   return chineseDay;
