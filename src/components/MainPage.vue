@@ -73,35 +73,37 @@
           ghost-class="ghost"
         >
           <template #item="{ element, index }" :key="element">
-            <div class="grid-item box_bg" @click="goWebsite(element.url)">
-              <div
-                class="icon delete_ico"
-                title="删除"
-                @click.stop="confirmDeleteWeblistItem(index)"
-              >
-                <delete_ico />
-              </div>
-              <div
-                class="icon edit_ico"
-                title="编辑"
-                @click.stop="openEdit(element, index)"
-              >
-                <menu_ico />
-              </div>
-              <template v-if="element.url && element.iconUrl.length > 0">
-                <img
-                  :src="element.iconUrl"
-                  :alt="element.webName"
-                  class="avatar-img"
-                />
-              </template>
-              <template v-else>
-                <div class="avatar-text">
-                  {{ getInitial(element.webName) }}
+            <a :href="element.url">
+              <div class="grid-item box_bg" @click="goWebsite(element.url)">
+                <div
+                  class="icon delete_ico"
+                  title="删除"
+                  @click.stop="confirmDeleteWeblistItem(index)"
+                >
+                  <delete_ico />
                 </div>
-              </template>
-              <div class="name-label">{{ element.webName }}</div>
-            </div>
+                <div
+                  class="icon edit_ico"
+                  title="编辑"
+                  @click.stop="openEdit(element, index)"
+                >
+                  <menu_ico />
+                </div>
+                <template v-if="element.url && element.iconUrl.length > 0">
+                  <img
+                    :src="element.iconUrl"
+                    :alt="element.webName"
+                    class="avatar-img"
+                  />
+                </template>
+                <template v-else>
+                  <div class="avatar-text">
+                    {{ getInitial(element.webName) }}
+                  </div>
+                </template>
+                <div class="name-label">{{ element.webName }}</div>
+              </div>
+            </a>
           </template>
         </draggable>
       </div>
@@ -916,6 +918,7 @@ function changeRedirectMode(mode: RedirectMode) {
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
+  border-radius: 2rem;
 }
 .page-redirect {
   margin: 2rem 0;
