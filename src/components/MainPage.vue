@@ -78,14 +78,14 @@
                 <div
                   class="icon delete_ico"
                   title="删除"
-                  @click.stop="confirmDeleteWeblistItem(index)"
+                  @click.stop.prevent="confirmDeleteWeblistItem(index)"
                 >
                   <delete_ico />
                 </div>
                 <div
                   class="icon edit_ico"
                   title="编辑"
-                  @click.stop="openEdit(element, index)"
+                  @click.stop.prevent="openEdit(element, index)"
                 >
                   <menu_ico />
                 </div>
