@@ -1,4 +1,4 @@
-import type { SearchEngine } from "../src/types/searchConfig";
+import type { SearchEngine } from "../src/config/searchConfig";
 
 // 储存图片base64到浏览器存储
 function doSaveImgBase64(imgBase64: string) {

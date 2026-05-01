@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="modal-mask" @click.self="closeModal">
+  <div v-if="show" class="modal-mask" @mousedown="onMaskMouseDown" @mouseup="onMaskMouseUp">
     <div
       class="modal-container box_bg"
       :style="{
@@ -39,6 +39,19 @@ const props = withDefaults(defineProps<ModalProps>(), {
 });
 
 const emit = defineEmits(["close"]);
+
+let mouseDownTarget: EventTarget | null = null;
+
+const onMaskMouseDown = (e: MouseEvent) => {
+  mouseDownTarget = e.target;
+};
+
+const onMaskMouseUp = (e: MouseEvent) => {
+  if (mouseDownTarget === e.target && e.target === e.currentTarget) {
+    closeModal();
+  }
+  mouseDownTarget = null;
+};
 
 const closeModal = () => {
   emit("close");
