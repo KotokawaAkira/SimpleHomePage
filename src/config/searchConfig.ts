@@ -2,13 +2,8 @@
 import baidu_logo from "../assets/baidu-color.svg";
 import google_logo from "../assets/google-color.svg";
 import bing_logo from "../assets/bing-color.svg";
-// 搜索引擎类型
-type SearchEngine = {
-  index: number;
-  engineName: string;
-  url: string;
-  logo_url: string;
-};
+import type { SearchEngine } from "./types";
+
 // 搜索引擎配置
 const EnginConfig: SearchEngine[] = [
   {

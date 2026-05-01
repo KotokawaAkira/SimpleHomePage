@@ -1,7 +1,4 @@
-type RedirectMode = {
-  value: number;
-  modeName: string;
-};
+import type { RedirectMode } from "./types";
 const RedirectModeConfig: RedirectMode[] = [
   { value: 0, modeName: "直接跳转" },
   { value: 1, modeName: "打开新页面" },

@@ -230,7 +230,7 @@ import add from "../assets/add.svg";
 import delete_ico from "../assets/delete.svg";
 import menu_ico from "../assets/menu.svg";
 import defaultImg from "../assets/1.png";
-import { type SearchEngine, EnginConfig } from "../types/searchConfig";
+import { type SearchEngine, EnginConfig } from "../config/searchConfig";
 import type { FrequentWebsite, MyDate, SelectedWebsite } from "../types/types";
 import {
   getFromLocalStorage,
@@ -242,8 +242,8 @@ import {
 } from "../../tools/useCache";
 import Modal from "./Modal.vue";
 import { readImgToBase64 } from "../../tools/useFile";
-import type { RedirectMode } from "../types/redirectModeConfig";
-import RedirectModeConfig from "../types/redirectModeConfig";
+import type { RedirectMode } from "../config/redirectModeConfig";
+import RedirectModeConfig from "../config/redirectModeConfig";
 let appNode: HTMLDivElement | undefined;
 const nowDate = new Date();
 // 响应式时间数据
