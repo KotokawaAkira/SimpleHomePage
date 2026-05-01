@@ -2,7 +2,7 @@
 import baidu_logo from "../assets/baidu-color.svg";
 import google_logo from "../assets/google-color.svg";
 import bing_logo from "../assets/bing-color.svg";
-import type { SearchEngine } from "./types";
+import type { SearchEngine } from "../types/types";
 
 // 搜索引擎配置
 const EnginConfig: SearchEngine[] = [
