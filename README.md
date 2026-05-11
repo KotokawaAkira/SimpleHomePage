@@ -1,5 +1,8 @@
-# Vue 3 + TypeScript + Vite
+# SimpleHomePage
+## 一个简单的Chrome首页插件
+## Use
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
-
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+>命令行 `npm install` 安装依赖<br>
+>命令行 `npm run build` 构建<br>
+>将根目录下的manifest.json复制到dist文件<br>
+>在Chrome中加载未打包的扩展程序选择dist文件夹
