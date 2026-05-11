@@ -101,7 +101,7 @@
                     {{ getInitial(element.webName) }}
                   </div>
                 </template>
-                <div class="name-label">{{ element.webName }}</div>
+                <div class="name-label" :title="element.webName">{{ element.webName }}</div>
               </div>
             </a>
           </template>
