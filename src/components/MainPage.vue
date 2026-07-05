@@ -78,7 +78,7 @@
                 <div
                   class="icon delete_ico"
                   title="删除"
-                  @click.stop.prevent="confirmDeleteWeblistItem(index)"
+                  @click.stop.prevent="openDeleteConfirm(index)"
                 >
                   <delete_ico />
                 </div>
@@ -219,6 +219,24 @@
       </div>
     </Modal>
   </transition>
+  <!-- 删除确认 弹窗 -->
+  <transition name="fade">
+    <Modal
+      :show="showModal_delete"
+      :confirm="true"
+      width="25%"
+      height="20%"
+      minWidth="280px"
+      minHeight="160px"
+      :doConfirm="deleteConfirm"
+      @close="closeModalDelete"
+    >
+      <div class="delete-container delete-text">
+        <h1>确认删除</h1>
+        <p>确定要删除吗？此操作不可撤销。</p>
+      </div>
+    </Modal>
+  </transition>
 </template>
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
@@ -259,6 +277,8 @@ const time = reactive<MyDate>({
 const showModal = ref(false);
 const showModal_add = ref(false);
 const showModal_edit = ref(false);
+const showModal_delete = ref(false);
+const deleteTargetIndex = ref(-1);
 // 当前选中搜索引擎
 const searchEngine = ref<SearchEngine>(EnginConfig[0]);
 // 响应式计算时间
@@ -458,11 +478,17 @@ function closeModalAdd() {
 function closeModalEdit() {
   showModal_edit.value = false;
 }
-// 删除置顶网页
-function confirmDeleteWeblistItem(index: number) {
-  webList.value.splice(index, 1);
+// 删除确认
+function openDeleteConfirm(index: number) {
+  deleteTargetIndex.value = index;
+  showModal_delete.value = true;
 }
-// 打开修改界面
+function deleteConfirm() {
+  webList.value.splice(deleteTargetIndex.value, 1);
+}
+function closeModalDelete() {
+  showModal_delete.value = false;
+}
 function openEdit(website: FrequentWebsite, index: number) {
   showModal_edit.value = true;
   editWebsite.index = index;
@@ -940,6 +966,15 @@ function changeRedirectMode(mode: RedirectMode) {
     label {
       cursor: pointer;
     }
+  }
+}
+.delete-text{
+  h1 {
+    font-size: clamp(2rem, 2vw, 4rem);
+  }
+  p{
+    margin-top: 3rem;
+    font-size: clamp(1.5rem,1.5vw,2rem);
   }
 }
 </style>
