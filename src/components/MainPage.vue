@@ -74,7 +74,7 @@
         >
           <template #item="{ element, index }" :key="element">
             <a :href="element.url">
-              <div class="grid-item box_bg" @click="goWebsite(element.url)">
+              <div class="grid-item box_bg" @click.prevent="goWebsite(element.url)">
                 <div
                   class="icon delete_ico"
                   title="删除"
