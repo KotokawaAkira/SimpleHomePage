@@ -9,7 +9,7 @@
         minHeight: props.minHeight,
       }"
     >
-      <div class="modal-content">
+      <div class="modal-content" :style="{ overflowY: props.contentOverflow ? 'scroll' : 'unset' }">
         <slot></slot>
       </div>
 
@@ -34,6 +34,7 @@ import type { ModalProps } from "../types/types";
 const props = withDefaults(defineProps<ModalProps>(), {
   confirm: false,
   disabled: false,
+  contentOverflow:true,
   width: "50%",
   height: "30%",
 });
@@ -103,6 +104,21 @@ const confirm = () => {
 
 .modal-content {
   flex: 1;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--text-h);
+    border-radius: 2rem;
+    transition: background 0.3s ease;
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: var(--text);
+  }
 }
 .modal-button-list {
   display: flex;

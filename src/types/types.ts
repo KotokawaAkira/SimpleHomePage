@@ -23,6 +23,7 @@ type ModalProps = {
   show: boolean;
   doConfirm?: () => void;
   disabled?: boolean;
+  contentOverflow?: boolean;
   width?: string;
   minWidth?: string;
   height?: string;
