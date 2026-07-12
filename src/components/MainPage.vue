@@ -74,7 +74,10 @@
         >
           <template #item="{ element, index }" :key="element">
             <a :href="element.url">
-              <div class="grid-item box_bg" @click.prevent="goWebsite(element.url)">
+              <div
+                class="grid-item box_bg"
+                @click.prevent="goWebsite(element.url)"
+              >
                 <div
                   class="icon delete_ico"
                   title="删除"
@@ -101,7 +104,9 @@
                     {{ getInitial(element.webName) }}
                   </div>
                 </template>
-                <div class="name-label" :title="element.webName">{{ element.webName }}</div>
+                <div class="name-label" :title="element.webName">
+                  {{ element.webName }}
+                </div>
               </div>
             </a>
           </template>
@@ -126,15 +131,36 @@
   </section>
   <!-- 设置 弹窗 -->
   <transition name="fade">
-    <Modal :show="showModal" @close="closeModal">
+    <Modal
+      :show="showModal"
+      @close="closeModal"
+      width="35%"
+      height="52%"
+    >
       <div class="setBackgroundImg">
         <h1>设置背景图片</h1>
-        <input
-          type="file"
-          accept="image/png,image/jpg,image/jpeg"
-          @change="uploadBackground"
-        />
-        <button class="restoreImg" @click="restoreImg">恢复默认图片</button>
+        <div class="bg-preview">
+          <img
+            v-if="backgroundImageBase64"
+            :src="backgroundImageBase64"
+            alt="当前背景图片"
+            class="bg-preview-img"
+          />
+          <div class="bg-preview-mask">
+            <label class="mask-action" title="更改背景">
+              <span>更改背景</span>
+              <input
+                type="file"
+                accept="image/png,image/jpg,image/jpeg"
+                @change="uploadBackground"
+              />
+            </label>
+            <div class="mask-divider"></div>
+            <button class="mask-action" title="恢复默认" @click="restoreImg">
+              恢复默认
+            </button>
+          </div>
+        </div>
       </div>
       <div class="page-redirect">
         <div>页面跳转:</div>
@@ -164,7 +190,7 @@
       :confirm="true"
       :disabled="!isAddLegal"
       width="30%"
-      height="30%"
+      height="45%"
       minHeight="300px"
       minWidth="300px"
       :doConfirm="addConfirm"
@@ -194,7 +220,7 @@
       :confirm="true"
       :disabled="!isEditLegal"
       width="30%"
-      height="30%"
+      height="45%"
       minHeight="300px"
       minWidth="300px"
       :doConfirm="editConfirm"
@@ -821,18 +847,60 @@ function changeRedirectMode(mode: RedirectMode) {
   }
 }
 .setBackgroundImg {
-  .restoreImg {
-    border-radius: 6px;
-    padding: 0.7rem;
-    color: var(--color_alert);
-    cursor: pointer;
-    border: 1px solid var(--color_alert);
-    transition: all 0.3s ease;
-    &:hover {
-      background-color: var(--btn_hover);
+  width: 100%;
+  .bg-preview {
+    display: block;
+    position: relative;
+    width: 80%;
+    // max-width: 320px;
+    aspect-ratio: 16 / 9;
+    margin: 1rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--text-h);
+    .bg-preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
-    &:active {
-      transform: scale(0.95);
+    .bg-preview-mask {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      background-color: rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      .mask-action {
+        color: #fff;
+        font-size: clamp(1.5rem, 1.5vw, 2rem);
+        background: none;
+        border: none;
+        padding: 0.3rem 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        &:hover {
+          color: var(--color_mizuki);
+        }
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+      .mask-divider {
+        width: 1px;
+        align-self: stretch;
+        margin: 20% 0;
+        background-color: rgba(255, 255, 255, 0.5);
+      }
+      input[type="file"] {
+        display: none;
+      }
+    }
+    &:hover .bg-preview-mask {
+      opacity: 1;
     }
   }
 }
@@ -968,13 +1036,13 @@ function changeRedirectMode(mode: RedirectMode) {
     }
   }
 }
-.delete-text{
+.delete-text {
   h1 {
     font-size: clamp(2rem, 2vw, 4rem);
   }
-  p{
+  p {
     margin-top: 3rem;
-    font-size: clamp(1.5rem,1.5vw,2rem);
+    font-size: clamp(1.5rem, 1.5vw, 2rem);
   }
 }
 </style>
