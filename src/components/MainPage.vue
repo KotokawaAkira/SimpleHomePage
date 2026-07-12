@@ -135,7 +135,6 @@
       :show="showModal"
       @close="closeModal"
       width="35%"
-      height="52%"
     >
       <div class="setBackgroundImg">
         <h1>设置背景图片</h1>
@@ -148,7 +147,8 @@
           />
           <div class="bg-preview-mask">
             <label class="mask-action" title="更改背景">
-              <span>更改背景</span>
+              <!-- <span>更改背景</span> -->
+               <images/>
               <input
                 type="file"
                 accept="image/png,image/jpg,image/jpeg"
@@ -157,7 +157,7 @@
             </label>
             <div class="mask-divider"></div>
             <button class="mask-action" title="恢复默认" @click="restoreImg">
-              恢复默认
+              <refresh/>
             </button>
           </div>
         </div>
@@ -190,7 +190,6 @@
       :confirm="true"
       :disabled="!isAddLegal"
       width="30%"
-      height="45%"
       minHeight="300px"
       minWidth="300px"
       :doConfirm="addConfirm"
@@ -220,7 +219,6 @@
       :confirm="true"
       :disabled="!isEditLegal"
       width="30%"
-      height="45%"
       minHeight="300px"
       minWidth="300px"
       :doConfirm="editConfirm"
@@ -251,7 +249,6 @@
       :show="showModal_delete"
       :confirm="true"
       width="25%"
-      height="20%"
       minWidth="280px"
       minHeight="160px"
       :doConfirm="deleteConfirm"
@@ -274,6 +271,8 @@ import add from "../assets/add.svg";
 import delete_ico from "../assets/delete.svg";
 import menu_ico from "../assets/menu.svg";
 import defaultImg from "../assets/1.png";
+import images from "../assets/images.svg";
+import refresh from "../assets/refresh.svg";
 import { type SearchEngine, EnginConfig } from "../config/searchConfig";
 import type { FrequentWebsite, MyDate, SelectedWebsite } from "../types/types";
 import {
@@ -881,7 +880,16 @@ function changeRedirectMode(mode: RedirectMode) {
         border: none;
         padding: 0.3rem 0.5rem;
         transition: all 0.3s ease;
+        aspect-ratio: 1 / 1;
+        width: 15%;
+        min-width: 50px;
+        max-width: 100px;
         cursor: pointer;
+        svg {
+          width: 100%;
+          height: 100%;
+          fill: currentColor;
+        }
         &:hover {
           color: var(--color_mizuki);
         }

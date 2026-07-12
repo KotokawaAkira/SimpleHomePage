@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<ModalProps>(), {
   disabled: false,
   contentOverflow:true,
   width: "50%",
-  height: "30%",
+  height: "auto",
 });
 
 const emit = defineEmits(["close"]);
@@ -86,7 +86,8 @@ const confirm = () => {
 /* 弹窗容器 */
 .modal-container {
   width: 50%;
-  height: 30%;
+  height: auto;
+  max-height: 45vh;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -105,26 +106,20 @@ const confirm = () => {
 .modal-content {
   flex: 1;
   overflow-y: auto;
+  padding:0 0.7rem 0 0;
   &::-webkit-scrollbar {
-    width: 4px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
+    width: 5px;
   }
   &::-webkit-scrollbar-thumb {
-    background: var(--text-h);
+    background: var(--bg_search);
     border-radius: 2rem;
-    transition: background 0.3s ease;
-  }
-  &:hover::-webkit-scrollbar-thumb {
-    background: var(--text);
   }
 }
 .modal-button-list {
   display: flex;
   gap: 1rem;
   justify-content: end;
-  margin: 1.5rem 0;
+  margin: 1.5rem 0 0 0;
 }
 .btn {
   align-self: flex-end;
