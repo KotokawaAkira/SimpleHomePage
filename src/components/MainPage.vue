@@ -661,10 +661,10 @@ function changeBgOpacity() {
     var(--bg_shadow_down)
   );
   .nav {
-    flex: 1;
+    margin: 0 0 3% 0;
   }
   .main {
-    flex: 8;
+    flex: 10;
     display: flex;
     align-items: center;
     width: 100%;
@@ -795,7 +795,7 @@ function changeBgOpacity() {
     }
   }
   .foot {
-    flex: 2;
+    margin: 3% 0 0 0;
   }
 }
 
