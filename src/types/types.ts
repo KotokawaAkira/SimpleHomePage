@@ -41,6 +41,11 @@ type RedirectMode = {
   value: number;
   modeName: string;
 };
+// 颜色主题类型
+type ColorSchemeMode = {
+  value: number;
+  modeName: string;
+};
 export type {
   MyDate,
   FrequentWebsite,
@@ -48,4 +53,5 @@ export type {
   ModalProps,
   SearchEngine,
   RedirectMode,
+  ColorSchemeMode,
 };
