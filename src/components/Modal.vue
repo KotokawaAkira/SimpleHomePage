@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<ModalProps>(), {
   contentOverflow:true,
   width: "50%",
   height: "auto",
+  minWidth: "350px",
 });
 
 const emit = defineEmits(["close"]);
@@ -64,22 +65,23 @@ const confirm = () => {
 </script>
 
 <style scoped lang="scss">
-/* 全屏蒙版 */
+/* ============================================================
+   1. 遮罩层 & 容器
+   ============================================================ */
 .box_bg {
   border-radius: 2rem;
   background: (var(--bg_mainbox));
   backdrop-filter: blur(6px);
 }
+
+/* 全屏蒙版 */
 .modal-mask {
   position: fixed;
-  inset: 0; /* top/bottom/left/right: 0 */
-  background-color: rgba(0, 0, 0, 0.5); /* 黑色半透明 */
-
-  /* 使用 Flex 布局让子元素垂直水平居中 */
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-
   z-index: 1000; /* 确保在最顶层 */
 }
 
@@ -87,34 +89,39 @@ const confirm = () => {
 .modal-container {
   width: 50%;
   height: auto;
-  max-height: 45vh;
+  max-height: 80vh;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-
-  /* 防止内容溢出圆角 */
-  overflow: hidden;
-
+  overflow: hidden; /* 防止内容溢出圆角 */
   color: var(--text);
   background-color: var(--bg_modal);
   backdrop-filter: unset;
 }
 
+/* ============================================================
+   2. 内容区（可滚动）
+   ============================================================ */
 .modal-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding:0 0.7rem 0 0;
+  padding: 0 0.7rem 0 0;
   &::-webkit-scrollbar {
     width: 5px;
   }
   &::-webkit-scrollbar-thumb {
-    background: var(--bg_search);
+    background: var(--scrollbar_thumb);
     border-radius: 2rem;
   }
 }
+
+/* ============================================================
+   3. 底部按钮
+   ============================================================ */
 .modal-button-list {
   display: flex;
   gap: 1rem;
@@ -135,12 +142,14 @@ const confirm = () => {
     background-color: var(--btn_hover);
   }
 }
-.confirm:not(:disabled):hover {
-  border-color: var(--color_mizuki);
-  color: var(--color_mizuki);
-}
-.confirm:disabled {
-  border-color: var(--btn_disable);
-  cursor: not-allowed;
+.confirm {
+  &:not(:disabled):hover {
+    border-color: var(--color_mizuki);
+    color: var(--color_mizuki);
+  }
+  &:disabled {
+    border-color: var(--btn_disable);
+    cursor: not-allowed;
+  }
 }
 </style>

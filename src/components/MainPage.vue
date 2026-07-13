@@ -2,7 +2,7 @@
   <section class="home">
     <nav class="nav"></nav>
     <main class="main">
-      <div class="main-box">
+      <div class="main-box box_bg">
         <!-- 显示时间 -->
         <section class="show-time">
           <div class="time">{{ timeString }}</div>
@@ -181,6 +181,48 @@
           }}</label>
         </div>
       </div>
+      <div class="page-redirect">
+        <div>颜色主题:</div>
+        <div
+          v-for="item in ColorSchemeConfig"
+          :key="item.value"
+          class="page-redirect-option"
+          @click="changeColorScheme(item)"
+        >
+          <input
+            type="radio"
+            name="mode-color-scheme"
+            :id="`color-${item.value}`"
+            :value="item.value"
+            v-model="colorSchemeMode.value"
+            @change="changeColorScheme(item)"
+          /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
+        </div>
+      </div>
+      <div class="page-redirect blur-setting">
+        <div>高斯模糊:</div>
+        <input
+          type="range"
+          min="0"
+          max="30"
+          step="1"
+          v-model.number="blurValue"
+          @input="changeBlur"
+        />
+        <span class="blur-value">{{ blurValue }}px</span>
+      </div>
+      <div class="page-redirect blur-setting">
+        <div>背景透明:</div>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          v-model.number="bgOpacity"
+          @input="changeBgOpacity"
+        />
+        <span class="blur-value">{{ bgOpacity.toFixed(2) }}</span>
+      </div>
     </Modal>
   </transition>
   <!-- 添加常用URL 弹窗 -->
@@ -287,6 +329,8 @@ import Modal from "./Modal.vue";
 import { readImgToBase64 } from "../../tools/useFile";
 import type { RedirectMode } from "../config/redirectModeConfig";
 import RedirectModeConfig from "../config/redirectModeConfig";
+import type { ColorSchemeMode } from "../config/colorSchemeConfig";
+import ColorSchemeConfig from "../config/colorSchemeConfig";
 let appNode: HTMLDivElement | undefined;
 const nowDate = new Date();
 // 响应式时间数据
@@ -328,6 +372,12 @@ const editWebsite = reactive<SelectedWebsite>({
 });
 // 页面跳转模式
 const redirectMode = ref<RedirectMode>({ value: 0, modeName: "直接跳转" });
+// 颜色主题模式
+const colorSchemeMode = ref<ColorSchemeMode>({ value: 0, modeName: "跟随系统" });
+// 高斯模糊数值(px)
+const blurValue = ref(6);
+// 背景不透明度(0-1)
+const bgOpacity = ref(0.5);
 // 判断是否合法输入
 const isAddLegal = computed(() => {
   return (
@@ -461,6 +511,18 @@ function getCache() {
   // 获取页面跳转方式
   const mode = getFromLocalStorage("redirectMode");
   if (mode) redirectMode.value = JSON.parse(mode) as RedirectMode;
+  // 获取颜色主题
+  const colorScheme = getFromLocalStorage("colorScheme");
+  if (colorScheme) colorSchemeMode.value = JSON.parse(colorScheme) as ColorSchemeMode;
+  applyColorScheme();
+  // 获取高斯模糊数值
+  const blur = getFromLocalStorage("blurValue");
+  if (blur !== null) blurValue.value = JSON.parse(blur) as number;
+  applyBlur();
+  // 获取背景不透明度
+  const opacity = getFromLocalStorage("bgOpacity");
+  if (opacity !== null) bgOpacity.value = JSON.parse(opacity) as number;
+  applyBgOpacity();
 }
 // 选择图片
 function uploadBackground(e: Event) {
@@ -537,8 +599,56 @@ function changeRedirectMode(mode: RedirectMode) {
   redirectMode.value = mode;
   addToLocalStorage<RedirectMode>("redirectMode", mode);
 }
+// 应用颜色主题
+function applyColorScheme() {
+  const html = document.documentElement;
+  switch (colorSchemeMode.value.value) {
+    case 1:
+      html.setAttribute("data-theme", "light");
+      break;
+    case 2:
+      html.setAttribute("data-theme", "dark");
+      break;
+    default:
+      html.removeAttribute("data-theme");
+      break;
+  }
+}
+// 修改颜色主题
+function changeColorScheme(mode: ColorSchemeMode) {
+  colorSchemeMode.value = mode;
+  addToLocalStorage<ColorSchemeMode>("colorScheme", mode);
+  applyColorScheme();
+}
+// 应用高斯模糊
+function applyBlur() {
+  document.documentElement.style.setProperty(
+    "--val_blur",
+    `${blurValue.value}px`,
+  );
+}
+// 修改高斯模糊
+function changeBlur() {
+  applyBlur();
+  addToLocalStorage<number>("blurValue", blurValue.value);
+}
+// 应用背景不透明度
+function applyBgOpacity() {
+  document.documentElement.style.setProperty(
+    "--bg_mainbox_alpha",
+    `${bgOpacity.value}`,
+  );
+}
+// 修改背景不透明度
+function changeBgOpacity() {
+  applyBgOpacity();
+  addToLocalStorage<number>("bgOpacity", bgOpacity.value);
+}
 </script>
 <style lang="scss">
+/* ============================================================
+   1. 页面布局（导航 / 主区 / 时间 / 搜索 / 页脚）
+   ============================================================ */
 .home {
   display: flex;
   flex-direction: column;
@@ -569,9 +679,6 @@ function changeRedirectMode(mode: RedirectMode) {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 2rem;
-      background: (var(--bg_mainbox));
-      backdrop-filter: blur(6px);
       padding: 3rem 0 0 0;
       box-sizing: border-box;
       z-index: 10;
@@ -691,23 +798,10 @@ function changeRedirectMode(mode: RedirectMode) {
     flex: 2;
   }
 }
-// 选项框样式
-.dropdown-container {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
 
-.trigger-btn {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
+/* ============================================================
+   2. 搜索引擎选项框
+   ============================================================ */
 .options-box {
   position: absolute;
   top: calc(100% + 8px); /* 距离按钮下方 8px */
@@ -715,33 +809,30 @@ function changeRedirectMode(mode: RedirectMode) {
   width: 100%;
   z-index: 100;
   color: var(--text);
-
-  /* 核心样式 */
-  border-radius: 6px; /* 圆角 6px */
-  background: var(--bg_selection); /* 半透明背景 */
-
+  border-radius: 6px;
+  background: var(--bg_selection);
   border: 1px solid rgba(255, 255, 255, 0.3); /* 让毛玻璃边缘更精致 */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  .option-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 4px;
+    cursor: pointer;
+    font-size: clamp(1rem, 0.8vw, 1.5rem);
+    transition: background 0.2s;
+    height: clamp(2rem, 2.5vh, 5rem);
+    &:hover {
+      background: var(--bg_selection_hover);
+    }
+  }
 }
 
-.option-item {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 4px;
-  cursor: pointer;
-  font-size: clamp(1rem, 0.8vw, 1.5rem);
-  transition: background 0.2s;
-  height: clamp(2rem, 2.5vh, 5rem);
-}
-
-.option-item:hover {
-  background: var(--bg_selection_hover); /* 悬停微调 */
-}
-
-/* 简单的进入/离开动画 */
+/* ============================================================
+   3. 过渡动画
+   ============================================================ */
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
@@ -768,10 +859,14 @@ function changeRedirectMode(mode: RedirectMode) {
 .show-leave-from {
   opacity: 1;
 }
+
+/* ============================================================
+   4. 通用工具类 & 右下角按钮
+   ============================================================ */
 .box_bg {
   border-radius: 2rem;
   background: (var(--bg_mainbox));
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(var(--val_blur));
 }
 .setting-list {
   display: flex;
@@ -781,22 +876,10 @@ function changeRedirectMode(mode: RedirectMode) {
   right: 3vw;
   bottom: 5vh;
   gap: 1rem;
-  .settings {
-    height: 5rem;
-    width: 5rem;
-    left: 3vw;
-    bottom: 5vh;
-    padding: 1rem;
-    box-sizing: border-box;
-    cursor: pointer;
-    &:active svg {
-      transition: all 0.3s ease;
-      transform: scale(0.9);
-    }
-  }
   svg {
     fill: var(--search_logo);
   }
+  .settings,
   .add-url {
     height: 5rem;
     width: 5rem;
@@ -810,6 +893,9 @@ function changeRedirectMode(mode: RedirectMode) {
   }
 }
 
+/* ============================================================
+   5. 弹窗内容（表单 / 背景设置 / 页面跳转 / 删除确认）
+   ============================================================ */
 .list-item {
   h2 {
     font-size: clamp(1.5rem, 1.5vw, 2rem);
@@ -831,7 +917,6 @@ function changeRedirectMode(mode: RedirectMode) {
     border-radius: 3px;
     height: 3rem;
     width: 100%;
-    outline: none;
     border: 1px solid var(--text-h);
     padding: 0 0.5rem;
     flex: 8;
@@ -912,7 +997,9 @@ function changeRedirectMode(mode: RedirectMode) {
     }
   }
 }
-// 排序样式
+/* ============================================================
+   6. 常用 URL 网格（可拖拽排序）
+   ============================================================ */
 .container {
   border-radius: 2rem;
   box-sizing: border-box;
@@ -924,16 +1011,21 @@ function changeRedirectMode(mode: RedirectMode) {
   &::-webkit-scrollbar {
     width: 5px;
   }
+  &::-webkit-scrollbar-track {
+    background: var(--scrollbar_track);
+  }
   &::-webkit-scrollbar-thumb {
-    background: var(--bg_search);
+    background: var(--scrollbar_thumb);
     border-radius: 2rem;
+    &:hover {
+      background: var(--color_mizuki);
+    }
   }
 }
 
-/* 核心 Grid 布局 */
+/* 核心 Grid 布局：auto-fill 自动填充，minmax 保证最小 120px */
 .grid-list {
   display: grid;
-  /* 关键：auto-fill 自动填充，minmax 保证最小 120px，最大平分剩余空间 */
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 16px;
 }
@@ -953,6 +1045,9 @@ function changeRedirectMode(mode: RedirectMode) {
     box-shadow 0.2s;
   overflow: hidden;
   gap: 0.5rem;
+  &:active {
+    cursor: grabbing;
+  }
   &:hover .icon {
     opacity: 1;
   }
@@ -966,62 +1061,60 @@ function changeRedirectMode(mode: RedirectMode) {
     top: 5%;
     left: 5%;
   }
-}
-.icon {
-  height: 18%;
-  width: 18%;
-  position: absolute;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  &:hover {
-    background-color: var(--bg_modal);
+  .icon {
+    height: 18%;
+    width: 18%;
+    position: absolute;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    &:hover {
+      background-color: var(--bg_modal);
+    }
+    svg {
+      fill: var(--search_logo);
+    }
   }
-  svg {
-    fill: var(--search_logo);
+  .avatar-img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+  }
+  .avatar-text {
+    width: 60%;
+    height: 60%;
+    background-color: var(--color_mizuki);
+    color: var(--code-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    border-radius: 50%;
+  }
+  .name-label {
+    font-size: 1.5rem;
+    width: 90%;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 1rem 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
-.grid-item:active {
-  cursor: grabbing;
-}
 
-.avatar-img {
-  width: 60%;
-  height: 60%;
-  object-fit: contain;
-}
-
-.avatar-text {
-  width: 60%;
-  height: 60%;
-  background-color: var(--color_mizuki);
-  color: var(--code-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
-  border-radius: 50%;
-}
-
-.name-label {
-  font-size: 1.5rem;
-  width: 90%;
-  text-align: center;
-  box-sizing: border-box;
-  padding: 1rem 0.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 拖拽时的样式（幽灵效果） */
+/* 拖拽时的幽灵效果 */
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
   border-radius: 2rem;
 }
+
+/* ============================================================
+   7. 弹窗补充样式（页面跳转 / 删除确认）
+   ============================================================ */
 .page-redirect {
   margin: 2rem 0;
   height: fit-content;
@@ -1051,6 +1144,17 @@ function changeRedirectMode(mode: RedirectMode) {
   p {
     margin-top: 3rem;
     font-size: clamp(1.5rem, 1.5vw, 2rem);
+  }
+}
+.blur-setting {
+  input[type="range"] {
+    flex: 1;
+    cursor: pointer;
+    accent-color: var(--color_mizuki);
+  }
+  .blur-value {
+    min-width: 4rem;
+    text-align: right;
   }
 }
 </style>

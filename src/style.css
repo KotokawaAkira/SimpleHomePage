@@ -20,7 +20,9 @@
   --bg_shadow_up: rgba(200, 200, 200, 0.01);
   --bg_shadow_down: rgba(200, 200, 200, 0.5);
 
-  --bg_mainbox: rgba(250, 250, 250, 0.5);
+  --bg_mainbox_rgb: 250, 250, 250;
+  --bg_mainbox_alpha: 0.5;
+  --bg_mainbox: rgba(var(--bg_mainbox_rgb), var(--bg_mainbox_alpha));
   --bg_search: rgba(250, 250, 250, 0.8);
   --search-border: #cccccc;
   --search_logo: #000;
@@ -31,6 +33,11 @@
 
   --btn_disable: #a7a7a7;
   --btn_hover: #eee;
+
+  --scrollbar_thumb: rgba(0, 0, 0, 0.2);
+  --scrollbar_track: transparent;
+
+  --val_blur: 6px;
 
   font: 10px/63.5% var(--sans);
   letter-spacing: 0.18px;
@@ -58,7 +65,8 @@
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
     --bg_shadow_up: rgba(50, 50, 50, 0.01);
     --bg_shadow_down: rgba(50, 50, 50, 0.5);
-    --bg_mainbox: rgba(5, 5, 5, 0.5);
+    --bg_mainbox_rgb: 5, 5, 5;
+    --bg_mainbox: rgba(var(--bg_mainbox_rgb), var(--bg_mainbox_alpha));
     --bg_search: rgba(50, 50, 50, 0.8);
     --search-border: #494949;
 
@@ -70,11 +78,68 @@
 
     --btn_disable: #5d5d5d;
     --btn_hover: #0e0e0e;
+
+    --scrollbar_thumb: rgba(255, 255, 255, 0.2);
+    --scrollbar_track: transparent;
   }
 
   #social .button-icon {
     filter: invert(1) brightness(2);
   }
+}
+html[data-theme="light"] {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #f5f5f5;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --bg_shadow_up: rgba(200, 200, 200, 0.01);
+  --bg_shadow_down: rgba(200, 200, 200, 0.5);
+  --bg_mainbox_rgb: 250, 250, 250;
+  --bg_mainbox: rgba(var(--bg_mainbox_rgb), var(--bg_mainbox_alpha));
+  --bg_search: rgba(250, 250, 250, 0.8);
+  --search_logo: #000;
+  --bg_selection: #eeeeeea9;
+  --bg_selection_hover: #d8d8d8c4;
+  --bg_modal: rgba(200, 200, 200, 0.95);
+  --btn_disable: #a7a7a7;
+  --btn_hover: #eee;
+  --scrollbar_thumb: rgba(0, 0, 0, 0.2);
+  --scrollbar_track: transparent;
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  --text: #ced9ec;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  --bg_shadow_up: rgba(50, 50, 50, 0.01);
+  --bg_shadow_down: rgba(50, 50, 50, 0.5);
+  --bg_mainbox_rgb: 5, 5, 5;
+  --bg_mainbox: rgba(var(--bg_mainbox_rgb), var(--bg_mainbox_alpha));
+  --bg_search: rgba(50, 50, 50, 0.8);
+  --search_logo: #757575;
+  --bg_selection: #333333c0;
+  --bg_selection_hover: #525252;
+  --bg_modal: rgba(50, 50, 50, 0.95);
+  --btn_disable: #5d5d5d;
+  --btn_hover: #0e0e0e;
+  --scrollbar_thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar_track: transparent;
+  color-scheme: dark;
 }
 #app {
   height: 100vh;
