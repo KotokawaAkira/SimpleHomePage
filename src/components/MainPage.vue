@@ -54,6 +54,8 @@
               type="text"
               v-model="inputText"
               v-on:keydown="onEnterPress"
+              @focus="showHistory = true"
+              @blur="hideHistoryDelayed"
             />
             <div class="do-search" @click="doSearch">
               <button class="logo">
@@ -61,6 +63,31 @@
               </button>
             </div>
           </div>
+          <!-- 搜索历史 -->
+          <transition name="fade">
+            <div
+              v-show="showHistory && filteredHistory.length > 0"
+              class="history-box"
+            >
+              <div
+                class="history-item"
+                v-for="(item, index) in filteredHistory"
+                :key="index"
+                @mousedown.prevent="selectHistoryItem(item)"
+              >
+              <div class="history-text-container">
+                <span class="history-text">{{ item }}</span>
+              </div>
+                <button
+                  class="history-delete"
+                  @mousedown.stop.prevent
+                  @click.stop="deleteHistoryItem(index)"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </transition>
         </section>
       </div>
       <!-- 常用URL栏 -->
@@ -131,11 +158,7 @@
   </section>
   <!-- 设置 弹窗 -->
   <transition name="fade">
-    <Modal
-      :show="showModal"
-      @close="closeModal"
-      width="35%"
-    >
+    <Modal :show="showModal" @close="closeModal" width="35%">
       <div class="setBackgroundImg">
         <h1>设置背景图片</h1>
         <div class="bg-preview">
@@ -148,7 +171,7 @@
           <div class="bg-preview-mask">
             <label class="mask-action" title="更改背景">
               <!-- <span>更改背景</span> -->
-               <images/>
+              <images />
               <input
                 type="file"
                 accept="image/png,image/jpg,image/jpeg"
@@ -157,7 +180,7 @@
             </label>
             <div class="mask-divider"></div>
             <button class="mask-action" title="恢复默认" @click="restoreImg">
-              <refresh/>
+              <refresh />
             </button>
           </div>
         </div>
@@ -357,6 +380,10 @@ const timeString = computed(
 );
 // 响应输入数据
 const inputText = ref("");
+const searchHistory = ref<string[]>([]);
+const showHistory = ref(false);
+const historyMaxCount = 10;
+let historyBlurTimer: ReturnType<typeof setTimeout> | null = null;
 // 背景图片base64
 const backgroundImageBase64 = ref<string | null>("");
 const addWebsite = reactive<FrequentWebsite>({
@@ -373,7 +400,10 @@ const editWebsite = reactive<SelectedWebsite>({
 // 页面跳转模式
 const redirectMode = ref<RedirectMode>({ value: 0, modeName: "直接跳转" });
 // 颜色主题模式
-const colorSchemeMode = ref<ColorSchemeMode>({ value: 0, modeName: "跟随系统" });
+const colorSchemeMode = ref<ColorSchemeMode>({
+  value: 0,
+  modeName: "跟随系统",
+});
 // 高斯模糊数值(px)
 const blurValue = ref(6);
 // 背景不透明度(0-1)
@@ -396,6 +426,12 @@ const isEditLegal = computed(() => {
   );
 });
 let webList = ref<FrequentWebsite[]>([]);
+const filteredHistory = computed(() => {
+  if (!inputText.value.trim()) return searchHistory.value;
+  return searchHistory.value.filter((item) =>
+    item.toLowerCase().includes(inputText.value.toLowerCase()),
+  );
+});
 // 读取主页添加的网站
 const browserWebList = getFromLocalStorage("webList");
 if (browserWebList) {
@@ -480,6 +516,8 @@ function goWebsite(url: string) {
 }
 // 搜索逻辑
 function doSearch() {
+  const query = inputText.value.trim();
+  if (query) saveSearchHistory(query);
   goWebsite(searchEngine.value.url + inputText.value);
 }
 // 监听键盘enter
@@ -488,6 +526,29 @@ function onEnterPress(e: KeyboardEvent) {
     doSearch();
     e.preventDefault();
   }
+}
+function saveSearchHistory(query: string) {
+  const trimmed = query.trim();
+  if (!trimmed) return;
+  const filtered = searchHistory.value.filter((item) => item !== trimmed);
+  filtered.unshift(trimmed);
+  searchHistory.value = filtered.slice(0, historyMaxCount);
+  addToLocalStorage<string[]>("searchHistory", searchHistory.value);
+}
+function selectHistoryItem(item: string) {
+  if (historyBlurTimer) clearTimeout(historyBlurTimer);
+  inputText.value = item;
+  showHistory.value = false;
+  doSearch();
+}
+function deleteHistoryItem(index: number) {
+  searchHistory.value.splice(index, 1);
+  addToLocalStorage<string[]>("searchHistory", searchHistory.value);
+}
+function hideHistoryDelayed() {
+  historyBlurTimer = setTimeout(() => {
+    showHistory.value = false;
+  }, 200);
 }
 // 写入本地缓存
 function setCache() {
@@ -513,7 +574,8 @@ function getCache() {
   if (mode) redirectMode.value = JSON.parse(mode) as RedirectMode;
   // 获取颜色主题
   const colorScheme = getFromLocalStorage("colorScheme");
-  if (colorScheme) colorSchemeMode.value = JSON.parse(colorScheme) as ColorSchemeMode;
+  if (colorScheme)
+    colorSchemeMode.value = JSON.parse(colorScheme) as ColorSchemeMode;
   applyColorScheme();
   // 获取高斯模糊数值
   const blur = getFromLocalStorage("blurValue");
@@ -523,6 +585,9 @@ function getCache() {
   const opacity = getFromLocalStorage("bgOpacity");
   if (opacity !== null) bgOpacity.value = JSON.parse(opacity) as number;
   applyBgOpacity();
+  // 获取搜索历史
+  const history = getFromLocalStorage("searchHistory");
+  if (history) searchHistory.value = JSON.parse(history) as string[];
 }
 // 选择图片
 function uploadBackground(e: Event) {
@@ -721,6 +786,7 @@ function changeBgOpacity() {
         display: flex;
         justify-content: center;
         align-items: center;
+        position: relative;
         &-box {
           padding: 0 1rem 0 1rem;
           box-sizing: border-box;
@@ -826,6 +892,62 @@ function changeBgOpacity() {
     height: clamp(2rem, 2.5vh, 5rem);
     &:hover {
       background: var(--bg_selection_hover);
+    }
+  }
+}
+
+/* 搜索历史 */
+.history-box {
+  position: absolute;
+  top: 12rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 100;
+  color: var(--text);
+  border-radius: 6px;
+  background: var(--bg_selection);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: clamp(1.5rem, 1.2vw, 2.25rem);
+    transition: background 0.2s;
+    height: clamp(2.5rem, 3.5vh, 5rem);
+    &:hover {
+      background: var(--bg_selection_hover);
+    }
+    .history-text-container {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      height: 100%;
+      .history-text {
+        height: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+      }
+    }
+    .history-delete {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 1.2em;
+      opacity: 0.5;
+      flex-shrink: 0;
+      &:hover {
+        opacity: 1;
+        color: var(--color_mizuki);
+      }
     }
   }
 }
