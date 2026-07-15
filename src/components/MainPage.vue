@@ -67,7 +67,7 @@
           <transition name="fade">
             <div
               v-show="showHistory && filteredHistory.length > 0"
-              class="history-box"
+              class="history-box modify-scroll-bar"
             >
               <div
                 class="history-item"
@@ -91,7 +91,7 @@
         </section>
       </div>
       <!-- 常用URL栏 -->
-      <div class="container">
+      <div class="container modify-scroll-bar">
         <draggable
           v-model="webList"
           item-key="id"
@@ -908,7 +908,8 @@ function changeBgOpacity() {
   background: var(--bg_selection);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  max-height: 48vh;
+  overflow-y: auto;
   .history-item {
     display: flex;
     justify-content: space-between;
@@ -1130,19 +1131,6 @@ function changeBgOpacity() {
   max-height: 300px;
   overflow-y: scroll;
   padding: 0 5px 0 0;
-  &::-webkit-scrollbar {
-    width: 5px;
-  }
-  &::-webkit-scrollbar-track {
-    background: var(--scrollbar_track);
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--scrollbar_thumb);
-    border-radius: 2rem;
-    &:hover {
-      background: var(--color_mizuki);
-    }
-  }
 }
 
 /* 核心 Grid 布局：auto-fill 自动填充，minmax 保证最小 120px */

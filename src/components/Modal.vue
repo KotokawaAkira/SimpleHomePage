@@ -9,7 +9,7 @@
         minHeight: props.minHeight,
       }"
     >
-      <div class="modal-content" :style="{ overflowY: props.contentOverflow ? 'scroll' : 'unset' }">
+      <div class="modal-content modify-scroll-bar" :style="{ overflowY: props.contentOverflow ? 'scroll' : 'unset' }">
         <slot></slot>
       </div>
 
@@ -110,13 +110,6 @@ const confirm = () => {
   min-height: 0;
   overflow-y: auto;
   padding: 0 0.7rem 0 0;
-  &::-webkit-scrollbar {
-    width: 5px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--scrollbar_thumb);
-    border-radius: 2rem;
-  }
 }
 
 /* ============================================================
