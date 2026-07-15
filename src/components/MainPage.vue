@@ -693,6 +693,7 @@ function addConfirm() {
 // 关闭弹窗
 function closeModal() {
   showModal.value = false;
+  fontDropdownOpen.value = false;
 }
 function closeModalAdd() {
   showModal_add.value = false;
