@@ -15,41 +15,36 @@
         <section class="search">
           <div class="search-box">
             <!-- 选择搜索引擎 -->
-            <div class="select">
-              <div
-                class="selection-box"
-                title="更换搜索引擎"
-                @click.stop="toggleDropdown"
-              >
-                <transition
-                  name="show"
-                  mode="out-in"
-                  v-for="engine in EnginConfig"
-                  :key="'A' + engine.index"
-                >
-                  <button
-                    class="logo"
-                    v-if="searchEngine.index === engine.index"
-                  >
-                    <component :is="engine.logo_url" />
-                  </button>
-                </transition>
-              </div>
-              <!-- 弹出选项框 -->
-              <transition name="fade">
-                <div v-show="isOpen" class="options-box">
-                  <div
-                    class="option-item"
+            <DropDown v-model="isOpen" class="select">
+              <template #trigger>
+                <div class="selection-box" title="更换搜索引擎">
+                  <transition
+                    name="show"
+                    mode="out-in"
                     v-for="engine in EnginConfig"
-                    :key="'B' + engine.index"
-                    @click="selectOption(engine)"
+                    :key="'A' + engine.index"
                   >
-                    <component :is="engine.logo_url" />
-                    <span>{{ engine.engineName }}</span>
-                  </div>
+                    <button
+                      class="logo"
+                      v-if="searchEngine.index === engine.index"
+                    >
+                      <component :is="engine.logo_url" />
+                    </button>
+                  </transition>
                 </div>
-              </transition>
-            </div>
+              </template>
+              <div class="options-box">
+                <div
+                  class="option-item"
+                  v-for="engine in EnginConfig"
+                  :key="'B' + engine.index"
+                  @click="selectOption(engine)"
+                >
+                  <component :is="engine.logo_url" />
+                  <span>{{ engine.engineName }}</span>
+                </div>
+              </div>
+            </DropDown>
             <input
               type="text"
               v-model="inputText"
@@ -224,16 +219,17 @@
       </div>
       <div class="page-redirect font-setting">
         <div>页面字体:</div>
-        <div class="font-select" @click.stop="toggleFontDropdown">
-          <span>{{
-            fontFamily === "system-ui" ? "系统默认" : fontFamily
-          }}</span>
-          <span class="font-select-arrow">▾</span>
-        </div>
-        <transition name="fade">
+        <DropDown v-model="fontDropdownOpen" style="flex: 1">
+          <template #trigger>
+            <div class="font-select">
+              <span>{{
+                fontFamily === "system-ui" ? "系统默认" : fontFamily
+              }}</span>
+              <span class="font-select-arrow">▾</span>
+            </div>
+          </template>
           <div
             ref="fontDropdownBox"
-            v-show="fontDropdownOpen"
             class="font-dropdown-box modify-scroll-bar"
           >
             <div
@@ -254,7 +250,7 @@
               {{ font }}
             </div>
           </div>
-        </transition>
+        </DropDown>
         <span
           class="font-preview"
           :style="{
@@ -371,7 +367,15 @@
   </transition>
 </template>
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
 import draggable from "vuedraggable";
 import search_logo from "../assets/magnifier-search.svg";
@@ -393,6 +397,7 @@ import {
   removeImgStorage,
 } from "../../tools/useCache";
 import Modal from "./Modal.vue";
+import DropDown from "./DropDown.vue";
 import { readImgToBase64 } from "../../tools/useFile";
 import type { RedirectMode } from "../config/redirectModeConfig";
 import RedirectModeConfig from "../config/redirectModeConfig";
@@ -497,9 +502,6 @@ setInterval(() => {
 }, 1000);
 // 选项框弹窗
 const isOpen = ref(false);
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
 const selectOption = (engine: SearchEngine) => {
   searchEngine.value = engine;
   isOpen.value = false;
@@ -507,44 +509,32 @@ const selectOption = (engine: SearchEngine) => {
 // 字体下拉框
 const fontDropdownOpen = ref(false);
 const fontDropdownBox = ref<HTMLDivElement | null>(null);
-const toggleFontDropdown = () => {
-  fontDropdownOpen.value = !fontDropdownOpen.value;
-  if (fontDropdownOpen.value) {
-    nextTick(() => {
-      const active = fontDropdownBox.value?.querySelector(".active");
-      active?.scrollIntoView({ block: "nearest" });
-    });
-  }
-};
 const selectFont = (font: string) => {
   fontFamily.value = font;
   fontDropdownOpen.value = false;
   changeFont();
-};
-// 点击外部自动关闭字体下拉框
-const closeFontDropdown = () => {
-  fontDropdownOpen.value = false;
-};
-// 点击外部自动关闭
-const closeDropdown = () => {
-  isOpen.value = false;
-  setCache();
 };
 
 // 初始化
 getCache();
 
 onMounted(() => {
-  window.addEventListener("click", closeDropdown);
-  window.addEventListener("click", closeFontDropdown);
   // 设置背景
   appNode = document.querySelector("#app") as HTMLDivElement;
   if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
     appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
 });
-onUnmounted(() => {
-  window.removeEventListener("click", closeDropdown);
-  window.removeEventListener("click", closeFontDropdown);
+onUnmounted(() => {});
+watch(fontDropdownOpen, (val) => {
+  if (val) {
+    nextTick(() => {
+      const active = fontDropdownBox.value?.querySelector(".active");
+      active?.scrollIntoView({ block: "nearest" });
+    });
+  }
+});
+watch(searchEngine, () => {
+  setCache();
 });
 watch(
   backgroundImageBase64,
@@ -969,13 +959,15 @@ function changeFont() {
               }
             }
           }
+
           input[type="text"] {
-            padding: 0 0.3rem;
             flex: 8;
+            padding: 0 0.3rem;
             background: none;
             border: none;
             outline: none;
             font-size: 3rem;
+            height: 100%;
             color: var(--text);
           }
           .do-search {
@@ -1107,7 +1099,9 @@ function changeFont() {
    ============================================================ */
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
@@ -1445,8 +1439,8 @@ function changeFont() {
   .font-dropdown-box {
     position: absolute;
     top: calc(100% + 4px);
-    left: 3.5rem;
-    right: 3rem;
+    left: 0;
+    right: 0;
     z-index: 200;
     max-height: 10vh;
     overflow-y: auto;
