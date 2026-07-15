@@ -75,9 +75,9 @@
                 :key="index"
                 @mousedown.prevent="selectHistoryItem(item)"
               >
-              <div class="history-text-container">
-                <span class="history-text">{{ item }}</span>
-              </div>
+                <div class="history-text-container">
+                  <span class="history-text">{{ item }}</span>
+                </div>
                 <button
                   class="history-delete"
                   @mousedown.stop.prevent
@@ -225,11 +225,17 @@
       <div class="page-redirect font-setting">
         <div>页面字体:</div>
         <div class="font-select" @click.stop="toggleFontDropdown">
-          <span>{{ fontFamily === 'system-ui' ? '系统默认' : fontFamily }}</span>
+          <span>{{
+            fontFamily === "system-ui" ? "系统默认" : fontFamily
+          }}</span>
           <span class="font-select-arrow">▾</span>
         </div>
         <transition name="fade">
-          <div v-show="fontDropdownOpen" class="font-dropdown-box modify-scroll-bar">
+          <div
+            ref="fontDropdownBox"
+            v-show="fontDropdownOpen"
+            class="font-dropdown-box modify-scroll-bar"
+          >
             <div
               class="font-dropdown-item"
               :class="{ active: fontFamily === 'system-ui' }"
@@ -249,7 +255,16 @@
             </div>
           </div>
         </transition>
-        <span class="font-preview" :style="{ fontFamily: fontFamily !== 'system-ui' ? fontFamily + ', sans-serif' : undefined }">Aa</span>
+        <span
+          class="font-preview"
+          :style="{
+            fontFamily:
+              fontFamily !== 'system-ui'
+                ? fontFamily + ', sans-serif'
+                : undefined,
+          }"
+          >Aa</span
+        >
       </div>
       <div class="page-redirect blur-setting">
         <div>高斯模糊:</div>
@@ -356,7 +371,7 @@
   </transition>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
 import draggable from "vuedraggable";
 import search_logo from "../assets/magnifier-search.svg";
@@ -491,8 +506,15 @@ const selectOption = (engine: SearchEngine) => {
 };
 // 字体下拉框
 const fontDropdownOpen = ref(false);
+const fontDropdownBox = ref<HTMLDivElement | null>(null);
 const toggleFontDropdown = () => {
   fontDropdownOpen.value = !fontDropdownOpen.value;
+  if (fontDropdownOpen.value) {
+    nextTick(() => {
+      const active = fontDropdownBox.value?.querySelector(".active");
+      active?.scrollIntoView({ block: "nearest" });
+    });
+  }
 };
 const selectFont = (font: string) => {
   fontFamily.value = font;
@@ -772,7 +794,9 @@ async function loadSystemFonts() {
   try {
     if ("queryLocalFonts" in window) {
       const fonts = await (window as any).queryLocalFonts();
-      const families = [...new Set<string>(fonts.map((f: { family: string }) => f.family))].sort((a, b) => a.localeCompare(b));
+      const families = [
+        ...new Set<string>(fonts.map((f: { family: string }) => f.family)),
+      ].sort((a, b) => a.localeCompare(b));
       systemFonts.value = families;
     }
   } catch {
@@ -780,12 +804,31 @@ async function loadSystemFonts() {
   }
   if (systemFonts.value.length === 0) {
     systemFonts.value = [
-      "Arial", "Helvetica", "Times New Roman", "Georgia", "Verdana",
-      "Courier New", "Microsoft YaHei", "SimSun", "SimHei",
-      "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Noto Serif SC",
-      "Source Han Sans SC", "STSong", "STKaiti", "KaiTi", "FangSong",
-      "Comic Sans MS", "Impact", "Trebuchet MS", "Tahoma",
-      "Palatino Linotype", "Lucida Console", "Segoe UI",
+      "Arial",
+      "Helvetica",
+      "Times New Roman",
+      "Georgia",
+      "Verdana",
+      "Courier New",
+      "Microsoft YaHei",
+      "SimSun",
+      "SimHei",
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Noto Sans SC",
+      "Noto Serif SC",
+      "Source Han Sans SC",
+      "STSong",
+      "STKaiti",
+      "KaiTi",
+      "FangSong",
+      "Comic Sans MS",
+      "Impact",
+      "Trebuchet MS",
+      "Tahoma",
+      "Palatino Linotype",
+      "Lucida Console",
+      "Segoe UI",
     ].filter((f) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -794,12 +837,19 @@ async function loadSystemFonts() {
       return ctx.font.includes(f);
     });
   }
+  if (fontDropdownOpen.value) {
+    nextTick(() => {
+      const active = fontDropdownBox.value?.querySelector(".active");
+      active?.scrollIntoView({ block: "nearest" });
+    });
+  }
 }
 // 应用字体
 function applyFont() {
-  const family = fontFamily.value === "system-ui"
-    ? "system-ui, 'Segoe UI', Roboto, sans-serif"
-    : fontFamily.value + ", sans-serif";
+  const family =
+    fontFamily.value === "system-ui"
+      ? "system-ui, 'Segoe UI', Roboto, sans-serif"
+      : fontFamily.value + ", sans-serif";
   document.documentElement.style.setProperty("--sans", family);
   document.body.style.fontFamily = family;
 }
@@ -1369,6 +1419,7 @@ function changeFont() {
 .font-setting {
   position: relative;
   .font-select {
+    height: 2rem;
     flex: 1;
     display: flex;
     align-items: center;
@@ -1377,10 +1428,11 @@ function changeFont() {
     font-size: clamp(1.3rem, 1.3vw, 1.8rem);
     padding: 0.3rem 0.5rem;
     border-radius: 4px;
-    border: 1px solid var(--text-h);
+    border: 1px solid var(--bg_selection_hover);
     background: var(--bg_search);
     color: var(--text);
     user-select: none;
+    transition: all 0.3s ease;
     .font-select-arrow {
       font-size: 1.2rem;
       margin-left: 0.5rem;
