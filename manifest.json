@@ -5,5 +5,5 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "permissions": ["storage", "unlimitedStorage"]
+  "permissions": ["storage", "unlimitedStorage", "local-fonts"]
 }

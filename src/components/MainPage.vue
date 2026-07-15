@@ -222,6 +222,35 @@
           /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
         </div>
       </div>
+      <div class="page-redirect font-setting">
+        <div>页面字体:</div>
+        <div class="font-select" @click.stop="toggleFontDropdown">
+          <span>{{ fontFamily === 'system-ui' ? '系统默认' : fontFamily }}</span>
+          <span class="font-select-arrow">▾</span>
+        </div>
+        <transition name="fade">
+          <div v-show="fontDropdownOpen" class="font-dropdown-box modify-scroll-bar">
+            <div
+              class="font-dropdown-item"
+              :class="{ active: fontFamily === 'system-ui' }"
+              @click="selectFont('system-ui')"
+            >
+              系统默认
+            </div>
+            <div
+              v-for="font in systemFonts"
+              :key="font"
+              class="font-dropdown-item"
+              :class="{ active: fontFamily === font }"
+              :style="{ fontFamily: font }"
+              @click="selectFont(font)"
+            >
+              {{ font }}
+            </div>
+          </div>
+        </transition>
+        <span class="font-preview" :style="{ fontFamily: fontFamily !== 'system-ui' ? fontFamily + ', sans-serif' : undefined }">Aa</span>
+      </div>
       <div class="page-redirect blur-setting">
         <div>高斯模糊:</div>
         <input
@@ -408,6 +437,9 @@ const colorSchemeMode = ref<ColorSchemeMode>({
 const blurValue = ref(6);
 // 背景不透明度(0-1)
 const bgOpacity = ref(0.5);
+// 字体设置
+const fontFamily = ref("system-ui");
+const systemFonts = ref<string[]>([]);
 // 判断是否合法输入
 const isAddLegal = computed(() => {
   return (
@@ -457,6 +489,20 @@ const selectOption = (engine: SearchEngine) => {
   searchEngine.value = engine;
   isOpen.value = false;
 };
+// 字体下拉框
+const fontDropdownOpen = ref(false);
+const toggleFontDropdown = () => {
+  fontDropdownOpen.value = !fontDropdownOpen.value;
+};
+const selectFont = (font: string) => {
+  fontFamily.value = font;
+  fontDropdownOpen.value = false;
+  changeFont();
+};
+// 点击外部自动关闭字体下拉框
+const closeFontDropdown = () => {
+  fontDropdownOpen.value = false;
+};
 // 点击外部自动关闭
 const closeDropdown = () => {
   isOpen.value = false;
@@ -468,12 +514,16 @@ getCache();
 
 onMounted(() => {
   window.addEventListener("click", closeDropdown);
+  window.addEventListener("click", closeFontDropdown);
   // 设置背景
   appNode = document.querySelector("#app") as HTMLDivElement;
   if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
     appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
 });
-onUnmounted(() => window.removeEventListener("click", closeDropdown));
+onUnmounted(() => {
+  window.removeEventListener("click", closeDropdown);
+  window.removeEventListener("click", closeFontDropdown);
+});
 watch(
   backgroundImageBase64,
   (newUrl) => {
@@ -503,6 +553,10 @@ watch(
   },
   { deep: true },
 );
+// 打开设置弹窗时加载系统字体
+watch(showModal, (newVal) => {
+  if (newVal) loadSystemFonts();
+});
 // 打开新页面
 function goWebsite(url: string) {
   switch (redirectMode.value.value) {
@@ -588,6 +642,10 @@ function getCache() {
   // 获取搜索历史
   const history = getFromLocalStorage("searchHistory");
   if (history) searchHistory.value = JSON.parse(history) as string[];
+  // 获取字体设置
+  const font = getFromLocalStorage("fontFamily");
+  if (font) fontFamily.value = JSON.parse(font) as string;
+  applyFont();
 }
 // 选择图片
 function uploadBackground(e: Event) {
@@ -708,6 +766,46 @@ function applyBgOpacity() {
 function changeBgOpacity() {
   applyBgOpacity();
   addToLocalStorage<number>("bgOpacity", bgOpacity.value);
+}
+// 加载系统字体列表
+async function loadSystemFonts() {
+  try {
+    if ("queryLocalFonts" in window) {
+      const fonts = await (window as any).queryLocalFonts();
+      const families = [...new Set<string>(fonts.map((f: { family: string }) => f.family))].sort((a, b) => a.localeCompare(b));
+      systemFonts.value = families;
+    }
+  } catch {
+    systemFonts.value = [];
+  }
+  if (systemFonts.value.length === 0) {
+    systemFonts.value = [
+      "Arial", "Helvetica", "Times New Roman", "Georgia", "Verdana",
+      "Courier New", "Microsoft YaHei", "SimSun", "SimHei",
+      "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Noto Serif SC",
+      "Source Han Sans SC", "STSong", "STKaiti", "KaiTi", "FangSong",
+      "Comic Sans MS", "Impact", "Trebuchet MS", "Tahoma",
+      "Palatino Linotype", "Lucida Console", "Segoe UI",
+    ].filter((f) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return false;
+      ctx.font = "72px '" + f + "'";
+      return ctx.font.includes(f);
+    });
+  }
+}
+// 应用字体
+function applyFont() {
+  const family = fontFamily.value === "system-ui"
+    ? "system-ui, 'Segoe UI', Roboto, sans-serif"
+    : fontFamily.value + ", sans-serif";
+  document.documentElement.style.setProperty("--sans", family);
+}
+// 修改字体
+function changeFont() {
+  applyFont();
+  addToLocalStorage<string>("fontFamily", fontFamily.value);
 }
 </script>
 <style lang="scss">
@@ -1265,6 +1363,64 @@ function changeBgOpacity() {
   .blur-value {
     min-width: 4rem;
     text-align: right;
+  }
+}
+.font-setting {
+  position: relative;
+  .font-select {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: clamp(1.3rem, 1.3vw, 1.8rem);
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--text-h);
+    background: var(--bg_search);
+    color: var(--text);
+    user-select: none;
+    .font-select-arrow {
+      font-size: 1.2rem;
+      margin-left: 0.5rem;
+      opacity: 0.6;
+    }
+    &:hover {
+      border-color: var(--color_mizuki);
+    }
+  }
+  .font-dropdown-box {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 3.5rem;
+    right: 3rem;
+    z-index: 200;
+    max-height: 10vh;
+    overflow-y: auto;
+    border-radius: 6px;
+    background: var(--bg_selection);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .font-dropdown-item {
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: clamp(1.2rem, 1.2vw, 1.6rem);
+      transition: background 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      &.active {
+        color: var(--color_mizuki);
+      }
+      &:hover {
+        background: var(--bg_selection_hover);
+      }
+    }
+  }
+  .font-preview {
+    min-width: 3rem;
+    text-align: right;
+    font-size: clamp(1.5rem, 1.5vw, 2rem);
   }
 }
 </style>
