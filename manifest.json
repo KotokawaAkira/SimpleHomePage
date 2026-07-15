@@ -1,6 +1,6 @@
 {
   "name": "SimpleHomePage",
-  "version": "1.0",
+  "version": "1.0.8",
   "manifest_version": 3,
   "chrome_url_overrides": {
     "newtab": "index.html"

@@ -801,6 +801,7 @@ function applyFont() {
     ? "system-ui, 'Segoe UI', Roboto, sans-serif"
     : fontFamily.value + ", sans-serif";
   document.documentElement.style.setProperty("--sans", family);
+  document.body.style.fontFamily = family;
 }
 // 修改字体
 function changeFont() {
