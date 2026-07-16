@@ -494,8 +494,8 @@ if (browserWebList) {
 setInterval(() => {
   const newTime = new Date();
   time.year = newTime.getFullYear();
-  time.day = nowDate.getDay();
-  time.date = nowDate.getDate();
+  time.day = newTime.getDay();
+  time.date = newTime.getDate();
   time.hours = newTime.getHours();
   time.minites = newTime.getMinutes();
   time.seconds = newTime.getSeconds();
@@ -968,6 +968,7 @@ function changeFont() {
             border: none;
             outline: none;
             font-size: 3rem;
+            font-family: var(--sans);
             height: 100%;
             color: var(--text);
           }
