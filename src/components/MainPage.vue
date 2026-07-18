@@ -1428,7 +1428,7 @@ function changeFont() {
     background: var(--bg_search);
     color: var(--text);
     user-select: none;
-    transition: all 0.3s ease;
+    transition: border 0.3s ease;
     .font-select-arrow {
       font-size: 1.2rem;
       margin-left: 0.5rem;
