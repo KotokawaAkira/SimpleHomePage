@@ -15,45 +15,42 @@
         <section class="search">
           <div class="search-box">
             <!-- 选择搜索引擎 -->
-            <div class="select">
-              <div
-                class="selection-box"
-                title="更换搜索引擎"
-                @click.stop="toggleDropdown"
-              >
-                <transition
-                  name="show"
-                  mode="out-in"
-                  v-for="engine in EnginConfig"
-                  :key="'A' + engine.index"
-                >
-                  <button
-                    class="logo"
-                    v-if="searchEngine.index === engine.index"
-                  >
-                    <component :is="engine.logo_url" />
-                  </button>
-                </transition>
-              </div>
-              <!-- 弹出选项框 -->
-              <transition name="fade">
-                <div v-show="isOpen" class="options-box">
-                  <div
-                    class="option-item"
+            <DropDown v-model="isOpen" class="select">
+              <template #trigger>
+                <div class="selection-box" title="更换搜索引擎">
+                  <transition
+                    name="show"
+                    mode="out-in"
                     v-for="engine in EnginConfig"
-                    :key="'B' + engine.index"
-                    @click="selectOption(engine)"
+                    :key="'A' + engine.index"
                   >
-                    <component :is="engine.logo_url" />
-                    <span>{{ engine.engineName }}</span>
-                  </div>
+                    <button
+                      class="logo"
+                      v-if="searchEngine.index === engine.index"
+                    >
+                      <component :is="engine.logo_url" />
+                    </button>
+                  </transition>
                 </div>
-              </transition>
-            </div>
+              </template>
+              <div class="options-box">
+                <div
+                  class="option-item"
+                  v-for="engine in EnginConfig"
+                  :key="'B' + engine.index"
+                  @click="selectOption(engine)"
+                >
+                  <component :is="engine.logo_url" />
+                  <span>{{ engine.engineName }}</span>
+                </div>
+              </div>
+            </DropDown>
             <input
               type="text"
               v-model="inputText"
               v-on:keydown="onEnterPress"
+              @focus="showHistory = true"
+              @blur="hideHistoryDelayed"
             />
             <div class="do-search" @click="doSearch">
               <button class="logo">
@@ -61,10 +58,35 @@
               </button>
             </div>
           </div>
+          <!-- 搜索历史 -->
+          <transition name="fade">
+            <div
+              v-show="showHistory && filteredHistory.length > 0"
+              class="history-box modify-scroll-bar"
+            >
+              <div
+                class="history-item"
+                v-for="(item, index) in filteredHistory"
+                :key="index"
+                @mousedown.prevent="selectHistoryItem(item)"
+              >
+                <div class="history-text-container">
+                  <span class="history-text">{{ item }}</span>
+                </div>
+                <button
+                  class="history-delete"
+                  @mousedown.stop.prevent
+                  @click.stop="deleteHistoryItem(index)"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </transition>
         </section>
       </div>
       <!-- 常用URL栏 -->
-      <div class="container">
+      <div class="container modify-scroll-bar">
         <draggable
           v-model="webList"
           item-key="id"
@@ -131,11 +153,7 @@
   </section>
   <!-- 设置 弹窗 -->
   <transition name="fade">
-    <Modal
-      :show="showModal"
-      @close="closeModal"
-      width="35%"
-    >
+    <Modal :show="showModal" @close="closeModal" width="35%">
       <div class="setBackgroundImg">
         <h1>设置背景图片</h1>
         <div class="bg-preview">
@@ -148,7 +166,7 @@
           <div class="bg-preview-mask">
             <label class="mask-action" title="更改背景">
               <!-- <span>更改背景</span> -->
-               <images/>
+              <images />
               <input
                 type="file"
                 accept="image/png,image/jpg,image/jpeg"
@@ -157,7 +175,7 @@
             </label>
             <div class="mask-divider"></div>
             <button class="mask-action" title="恢复默认" @click="restoreImg">
-              <refresh/>
+              <refresh />
             </button>
           </div>
         </div>
@@ -198,6 +216,51 @@
             @change="changeColorScheme(item)"
           /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
         </div>
+      </div>
+      <div class="page-redirect font-setting">
+        <div>页面字体:</div>
+        <DropDown v-model="fontDropdownOpen" style="flex: 1">
+          <template #trigger>
+            <div class="font-select">
+              <span>{{
+                fontFamily === "system-ui" ? "系统默认" : fontFamily
+              }}</span>
+              <span class="font-select-arrow">▾</span>
+            </div>
+          </template>
+          <div
+            ref="fontDropdownBox"
+            class="font-dropdown-box modify-scroll-bar"
+          >
+            <div
+              class="font-dropdown-item"
+              :class="{ active: fontFamily === 'system-ui' }"
+              @click="selectFont('system-ui')"
+            >
+              系统默认
+            </div>
+            <div
+              v-for="font in systemFonts"
+              :key="font"
+              class="font-dropdown-item"
+              :class="{ active: fontFamily === font }"
+              :style="{ fontFamily: font }"
+              @click="selectFont(font)"
+            >
+              {{ font }}
+            </div>
+          </div>
+        </DropDown>
+        <span
+          class="font-preview"
+          :style="{
+            fontFamily:
+              fontFamily !== 'system-ui'
+                ? fontFamily + ', sans-serif'
+                : undefined,
+          }"
+          >Aa</span
+        >
       </div>
       <div class="page-redirect blur-setting">
         <div>高斯模糊:</div>
@@ -304,7 +367,15 @@
   </transition>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
 import draggable from "vuedraggable";
 import search_logo from "../assets/magnifier-search.svg";
@@ -326,6 +397,7 @@ import {
   removeImgStorage,
 } from "../../tools/useCache";
 import Modal from "./Modal.vue";
+import DropDown from "./DropDown.vue";
 import { readImgToBase64 } from "../../tools/useFile";
 import type { RedirectMode } from "../config/redirectModeConfig";
 import RedirectModeConfig from "../config/redirectModeConfig";
@@ -357,6 +429,10 @@ const timeString = computed(
 );
 // 响应输入数据
 const inputText = ref("");
+const searchHistory = ref<string[]>([]);
+const showHistory = ref(false);
+const historyMaxCount = 10;
+let historyBlurTimer: ReturnType<typeof setTimeout> | null = null;
 // 背景图片base64
 const backgroundImageBase64 = ref<string | null>("");
 const addWebsite = reactive<FrequentWebsite>({
@@ -373,11 +449,17 @@ const editWebsite = reactive<SelectedWebsite>({
 // 页面跳转模式
 const redirectMode = ref<RedirectMode>({ value: 0, modeName: "直接跳转" });
 // 颜色主题模式
-const colorSchemeMode = ref<ColorSchemeMode>({ value: 0, modeName: "跟随系统" });
+const colorSchemeMode = ref<ColorSchemeMode>({
+  value: 0,
+  modeName: "跟随系统",
+});
 // 高斯模糊数值(px)
 const blurValue = ref(6);
 // 背景不透明度(0-1)
 const bgOpacity = ref(0.5);
+// 字体设置
+const fontFamily = ref("system-ui");
+const systemFonts = ref<string[]>([]);
 // 判断是否合法输入
 const isAddLegal = computed(() => {
   return (
@@ -396,6 +478,12 @@ const isEditLegal = computed(() => {
   );
 });
 let webList = ref<FrequentWebsite[]>([]);
+const filteredHistory = computed(() => {
+  if (!inputText.value.trim()) return searchHistory.value;
+  return searchHistory.value.filter((item) =>
+    item.toLowerCase().includes(inputText.value.toLowerCase()),
+  );
+});
 // 读取主页添加的网站
 const browserWebList = getFromLocalStorage("webList");
 if (browserWebList) {
@@ -406,38 +494,48 @@ if (browserWebList) {
 setInterval(() => {
   const newTime = new Date();
   time.year = newTime.getFullYear();
-  time.day = nowDate.getDay();
-  time.date = nowDate.getDate();
+  time.day = newTime.getDay();
+  time.date = newTime.getDate();
   time.hours = newTime.getHours();
   time.minites = newTime.getMinutes();
   time.seconds = newTime.getSeconds();
 }, 1000);
 // 选项框弹窗
 const isOpen = ref(false);
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
 const selectOption = (engine: SearchEngine) => {
   searchEngine.value = engine;
   isOpen.value = false;
 };
-// 点击外部自动关闭
-const closeDropdown = () => {
-  isOpen.value = false;
-  setCache();
+// 字体下拉框
+const fontDropdownOpen = ref(false);
+const fontDropdownBox = ref<HTMLDivElement | null>(null);
+const selectFont = (font: string) => {
+  fontFamily.value = font;
+  fontDropdownOpen.value = false;
+  changeFont();
 };
 
 // 初始化
 getCache();
 
 onMounted(() => {
-  window.addEventListener("click", closeDropdown);
   // 设置背景
   appNode = document.querySelector("#app") as HTMLDivElement;
   if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
     appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
 });
-onUnmounted(() => window.removeEventListener("click", closeDropdown));
+onUnmounted(() => {});
+watch(fontDropdownOpen, (val) => {
+  if (val) {
+    nextTick(() => {
+      const active = fontDropdownBox.value?.querySelector(".active");
+      active?.scrollIntoView({ block: "nearest" });
+    });
+  }
+});
+watch(searchEngine, () => {
+  setCache();
+});
 watch(
   backgroundImageBase64,
   (newUrl) => {
@@ -467,6 +565,10 @@ watch(
   },
   { deep: true },
 );
+// 打开设置弹窗时加载系统字体
+watch(showModal, (newVal) => {
+  if (newVal) loadSystemFonts();
+});
 // 打开新页面
 function goWebsite(url: string) {
   switch (redirectMode.value.value) {
@@ -480,6 +582,8 @@ function goWebsite(url: string) {
 }
 // 搜索逻辑
 function doSearch() {
+  const query = inputText.value.trim();
+  if (query) saveSearchHistory(query);
   goWebsite(searchEngine.value.url + inputText.value);
 }
 // 监听键盘enter
@@ -488,6 +592,29 @@ function onEnterPress(e: KeyboardEvent) {
     doSearch();
     e.preventDefault();
   }
+}
+function saveSearchHistory(query: string) {
+  const trimmed = query.trim();
+  if (!trimmed) return;
+  const filtered = searchHistory.value.filter((item) => item !== trimmed);
+  filtered.unshift(trimmed);
+  searchHistory.value = filtered.slice(0, historyMaxCount);
+  addToLocalStorage<string[]>("searchHistory", searchHistory.value);
+}
+function selectHistoryItem(item: string) {
+  if (historyBlurTimer) clearTimeout(historyBlurTimer);
+  inputText.value = item;
+  showHistory.value = false;
+  doSearch();
+}
+function deleteHistoryItem(index: number) {
+  searchHistory.value.splice(index, 1);
+  addToLocalStorage<string[]>("searchHistory", searchHistory.value);
+}
+function hideHistoryDelayed() {
+  historyBlurTimer = setTimeout(() => {
+    showHistory.value = false;
+  }, 200);
 }
 // 写入本地缓存
 function setCache() {
@@ -513,7 +640,8 @@ function getCache() {
   if (mode) redirectMode.value = JSON.parse(mode) as RedirectMode;
   // 获取颜色主题
   const colorScheme = getFromLocalStorage("colorScheme");
-  if (colorScheme) colorSchemeMode.value = JSON.parse(colorScheme) as ColorSchemeMode;
+  if (colorScheme)
+    colorSchemeMode.value = JSON.parse(colorScheme) as ColorSchemeMode;
   applyColorScheme();
   // 获取高斯模糊数值
   const blur = getFromLocalStorage("blurValue");
@@ -523,6 +651,13 @@ function getCache() {
   const opacity = getFromLocalStorage("bgOpacity");
   if (opacity !== null) bgOpacity.value = JSON.parse(opacity) as number;
   applyBgOpacity();
+  // 获取搜索历史
+  const history = getFromLocalStorage("searchHistory");
+  if (history) searchHistory.value = JSON.parse(history) as string[];
+  // 获取字体设置
+  const font = getFromLocalStorage("fontFamily");
+  if (font) fontFamily.value = JSON.parse(font) as string;
+  applyFont();
 }
 // 选择图片
 function uploadBackground(e: Event) {
@@ -558,6 +693,7 @@ function addConfirm() {
 // 关闭弹窗
 function closeModal() {
   showModal.value = false;
+  fontDropdownOpen.value = false;
 }
 function closeModalAdd() {
   showModal_add.value = false;
@@ -644,6 +780,75 @@ function changeBgOpacity() {
   applyBgOpacity();
   addToLocalStorage<number>("bgOpacity", bgOpacity.value);
 }
+// 加载系统字体列表
+async function loadSystemFonts() {
+  try {
+    if ("queryLocalFonts" in window) {
+      const fonts = await (window as any).queryLocalFonts();
+      const families = [
+        ...new Set<string>(fonts.map((f: { family: string }) => f.family)),
+      ].sort((a, b) => a.localeCompare(b));
+      systemFonts.value = families;
+    }
+  } catch {
+    systemFonts.value = [];
+  }
+  if (systemFonts.value.length === 0) {
+    systemFonts.value = [
+      "Arial",
+      "Helvetica",
+      "Times New Roman",
+      "Georgia",
+      "Verdana",
+      "Courier New",
+      "Microsoft YaHei",
+      "SimSun",
+      "SimHei",
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Noto Sans SC",
+      "Noto Serif SC",
+      "Source Han Sans SC",
+      "STSong",
+      "STKaiti",
+      "KaiTi",
+      "FangSong",
+      "Comic Sans MS",
+      "Impact",
+      "Trebuchet MS",
+      "Tahoma",
+      "Palatino Linotype",
+      "Lucida Console",
+      "Segoe UI",
+    ].filter((f) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return false;
+      ctx.font = "72px '" + f + "'";
+      return ctx.font.includes(f);
+    });
+  }
+  if (fontDropdownOpen.value) {
+    nextTick(() => {
+      const active = fontDropdownBox.value?.querySelector(".active");
+      active?.scrollIntoView({ block: "nearest" });
+    });
+  }
+}
+// 应用字体
+function applyFont() {
+  const family =
+    fontFamily.value === "system-ui"
+      ? "system-ui, 'Segoe UI', Roboto, sans-serif"
+      : fontFamily.value + ", sans-serif";
+  document.documentElement.style.setProperty("--sans", family);
+  document.body.style.fontFamily = family;
+}
+// 修改字体
+function changeFont() {
+  applyFont();
+  addToLocalStorage<string>("fontFamily", fontFamily.value);
+}
 </script>
 <style lang="scss">
 /* ============================================================
@@ -661,10 +866,10 @@ function changeBgOpacity() {
     var(--bg_shadow_down)
   );
   .nav {
-    flex: 1;
+    margin: 0 0 3% 0;
   }
   .main {
-    flex: 8;
+    flex: 10;
     display: flex;
     align-items: center;
     width: 100%;
@@ -721,6 +926,7 @@ function changeBgOpacity() {
         display: flex;
         justify-content: center;
         align-items: center;
+        position: relative;
         &-box {
           padding: 0 1rem 0 1rem;
           box-sizing: border-box;
@@ -754,13 +960,16 @@ function changeBgOpacity() {
               }
             }
           }
+
           input[type="text"] {
-            padding: 0 0.3rem;
             flex: 8;
+            padding: 0 0.3rem;
             background: none;
             border: none;
             outline: none;
             font-size: 3rem;
+            font-family: var(--sans);
+            height: 100%;
             color: var(--text);
           }
           .do-search {
@@ -795,7 +1004,7 @@ function changeBgOpacity() {
     }
   }
   .foot {
-    flex: 2;
+    margin: 3% 0 0 0;
   }
 }
 
@@ -830,12 +1039,71 @@ function changeBgOpacity() {
   }
 }
 
+/* 搜索历史 */
+.history-box {
+  position: absolute;
+  top: 12rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 100;
+  color: var(--text);
+  border-radius: 6px;
+  background: var(--bg_selection);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 48vh;
+  overflow-y: auto;
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: clamp(1.5rem, 1.2vw, 2.25rem);
+    transition: background 0.2s;
+    height: clamp(2.5rem, 3.5vh, 5rem);
+    &:hover {
+      background: var(--bg_selection_hover);
+    }
+    .history-text-container {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      height: 100%;
+      .history-text {
+        height: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+      }
+    }
+    .history-delete {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 1.2em;
+      opacity: 0.5;
+      flex-shrink: 0;
+      &:hover {
+        opacity: 1;
+        color: var(--color_mizuki);
+      }
+    }
+  }
+}
+
 /* ============================================================
    3. 过渡动画
    ============================================================ */
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
@@ -1008,19 +1276,6 @@ function changeBgOpacity() {
   max-height: 300px;
   overflow-y: scroll;
   padding: 0 5px 0 0;
-  &::-webkit-scrollbar {
-    width: 5px;
-  }
-  &::-webkit-scrollbar-track {
-    background: var(--scrollbar_track);
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--scrollbar_thumb);
-    border-radius: 2rem;
-    &:hover {
-      background: var(--color_mizuki);
-    }
-  }
 }
 
 /* 核心 Grid 布局：auto-fill 自动填充，minmax 保证最小 120px */
@@ -1155,6 +1410,66 @@ function changeBgOpacity() {
   .blur-value {
     min-width: 4rem;
     text-align: right;
+  }
+}
+.font-setting {
+  position: relative;
+  .font-select {
+    height: 2rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: clamp(1.3rem, 1.3vw, 1.8rem);
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--bg_selection_hover);
+    background: var(--bg_search);
+    color: var(--text);
+    user-select: none;
+    transition: border 0.3s ease;
+    .font-select-arrow {
+      font-size: 1.2rem;
+      margin-left: 0.5rem;
+      opacity: 0.6;
+    }
+    &:hover {
+      border-color: var(--color_mizuki);
+    }
+  }
+  .font-dropdown-box {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 200;
+    max-height: 10vh;
+    overflow-y: auto;
+    border-radius: 6px;
+    background: var(--bg_selection);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .font-dropdown-item {
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: clamp(1.2rem, 1.2vw, 1.6rem);
+      transition: background 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      &.active {
+        color: var(--color_mizuki);
+      }
+      &:hover {
+        background: var(--bg_selection_hover);
+      }
+    }
+  }
+  .font-preview {
+    min-width: 3rem;
+    text-align: right;
+    font-size: clamp(1.5rem, 1.5vw, 2rem);
   }
 }
 </style>
