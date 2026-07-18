@@ -18,40 +18,23 @@
             <DropDown v-model="isOpen" class="select">
               <template #trigger>
                 <div class="selection-box" title="更换搜索引擎">
-                  <transition
-                    name="show"
-                    mode="out-in"
-                    v-for="engine in EnginConfig"
-                    :key="'A' + engine.index"
-                  >
-                    <button
-                      class="logo"
-                      v-if="searchEngine.index === engine.index"
-                    >
+                  <transition name="show" mode="out-in" v-for="engine in EnginConfig" :key="'A' + engine.index">
+                    <button class="logo" v-if="searchEngine.index === engine.index">
                       <component :is="engine.logo_url" />
                     </button>
                   </transition>
                 </div>
               </template>
               <div class="options-box">
-                <div
-                  class="option-item"
-                  v-for="engine in EnginConfig"
-                  :key="'B' + engine.index"
-                  @click="selectOption(engine)"
-                >
+                <div class="option-item" v-for="engine in EnginConfig" :key="'B' + engine.index"
+                  @click="selectOption(engine)">
                   <component :is="engine.logo_url" />
                   <span>{{ engine.engineName }}</span>
                 </div>
               </div>
             </DropDown>
-            <input
-              type="text"
-              v-model="inputText"
-              v-on:keydown="onEnterPress"
-              @focus="showHistory = true"
-              @blur="hideHistoryDelayed"
-            />
+            <input type="text" v-model="inputText" v-on:keydown="onEnterPress" @focus="showHistory = true"
+              @blur="hideHistoryDelayed" />
             <div class="do-search" @click="doSearch">
               <button class="logo">
                 <search_logo />
@@ -60,24 +43,13 @@
           </div>
           <!-- 搜索历史 -->
           <transition name="fade">
-            <div
-              v-show="showHistory && filteredHistory.length > 0"
-              class="history-box modify-scroll-bar"
-            >
-              <div
-                class="history-item"
-                v-for="(item, index) in filteredHistory"
-                :key="index"
-                @mousedown.prevent="selectHistoryItem(item)"
-              >
+            <div v-show="showHistory && filteredHistory.length > 0" class="history-box modify-scroll-bar">
+              <div class="history-item" v-for="(item, index) in filteredHistory" :key="index"
+                @mousedown.prevent="selectHistoryItem(item)">
                 <div class="history-text-container">
                   <span class="history-text">{{ item }}</span>
                 </div>
-                <button
-                  class="history-delete"
-                  @mousedown.stop.prevent
-                  @click.stop="deleteHistoryItem(index)"
-                >
+                <button class="history-delete" @mousedown.stop.prevent @click.stop="deleteHistoryItem(index)">
                   ×
                 </button>
               </div>
@@ -87,39 +59,18 @@
       </div>
       <!-- 常用URL栏 -->
       <div class="container modify-scroll-bar">
-        <draggable
-          v-model="webList"
-          item-key="id"
-          class="grid-list"
-          animation="300"
-          ghost-class="ghost"
-        >
+        <draggable v-model="webList" item-key="id" class="grid-list" animation="300" ghost-class="ghost">
           <template #item="{ element, index }" :key="element">
             <a :href="element.url">
-              <div
-                class="grid-item box_bg"
-                @click.prevent="goWebsite(element.url)"
-              >
-                <div
-                  class="icon delete_ico"
-                  title="删除"
-                  @click.stop.prevent="openDeleteConfirm(index)"
-                >
+              <div class="grid-item box_bg" @click.prevent="goWebsite(element.url)">
+                <div class="icon delete_ico" title="删除" @click.stop.prevent="openDeleteConfirm(index)">
                   <delete_ico />
                 </div>
-                <div
-                  class="icon edit_ico"
-                  title="编辑"
-                  @click.stop.prevent="openEdit(element, index)"
-                >
+                <div class="icon edit_ico" title="编辑" @click.stop.prevent="openEdit(element, index)">
                   <menu_ico />
                 </div>
                 <template v-if="element.url && element.iconUrl.length > 0">
-                  <img
-                    :src="element.iconUrl"
-                    :alt="element.webName"
-                    class="avatar-img"
-                  />
+                  <img :src="element.iconUrl" :alt="element.webName" class="avatar-img" />
                 </template>
                 <template v-else>
                   <div class="avatar-text">
@@ -138,11 +89,7 @@
     <footer class="foot">
       <!-- 右下角图标 -->
       <div class="setting-list">
-        <button
-          class="add-url box_bg"
-          title="添加常用URL"
-          @click="showModal_add = true"
-        >
+        <button class="add-url box_bg" title="添加常用URL" @click="showModal_add = true">
           <add />
         </button>
         <button class="settings box_bg" title="设置" @click="showModal = true">
@@ -157,21 +104,12 @@
       <div class="setBackgroundImg">
         <h1>设置背景图片</h1>
         <div class="bg-preview">
-          <img
-            v-if="backgroundImageBase64"
-            :src="backgroundImageBase64"
-            alt="当前背景图片"
-            class="bg-preview-img"
-          />
+          <img v-if="backgroundImageBase64" :src="backgroundImageBase64" alt="当前背景图片" class="bg-preview-img" />
           <div class="bg-preview-mask">
             <label class="mask-action" title="更改背景">
               <!-- <span>更改背景</span> -->
               <images />
-              <input
-                type="file"
-                accept="image/png,image/jpg,image/jpeg"
-                @change="uploadBackground"
-              />
+              <input type="file" accept="image/png,image/jpg,image/jpeg" @change="uploadBackground" />
             </label>
             <div class="mask-divider"></div>
             <button class="mask-action" title="恢复默认" @click="restoreImg">
@@ -182,39 +120,21 @@
       </div>
       <div class="page-redirect">
         <div>页面跳转:</div>
-        <div
-          v-for="item in RedirectModeConfig"
-          class="page-redirect-option"
-          @click="changeRedirectMode(item)"
-        >
-          <input
-            type="radio"
-            name="mode-redirect"
-            :id="`${item.value}/${item.modeName}`"
-            :value="item.value"
-            v-model="redirectMode.value"
-            @change="changeRedirectMode(item)"
-          /><label :for="`${item.value}/${item.modeName}`">{{
-            item.modeName
-          }}</label>
+        <div v-for="item in RedirectModeConfig" class="page-redirect-option" @click="changeRedirectMode(item)">
+          <input type="radio" name="mode-redirect" :id="`${item.value}/${item.modeName}`" :value="item.value"
+            v-model="redirectMode.value" @change="changeRedirectMode(item)" /><label
+            :for="`${item.value}/${item.modeName}`">{{
+              item.modeName
+            }}</label>
         </div>
       </div>
       <div class="page-redirect">
         <div>颜色主题:</div>
-        <div
-          v-for="item in ColorSchemeConfig"
-          :key="item.value"
-          class="page-redirect-option"
-          @click="changeColorScheme(item)"
-        >
-          <input
-            type="radio"
-            name="mode-color-scheme"
-            :id="`color-${item.value}`"
-            :value="item.value"
-            v-model="colorSchemeMode.value"
-            @change="changeColorScheme(item)"
-          /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
+        <div v-for="item in ColorSchemeConfig" :key="item.value" class="page-redirect-option"
+          @click="changeColorScheme(item)">
+          <input type="radio" name="mode-color-scheme" :id="`color-${item.value}`" :value="item.value"
+            v-model="colorSchemeMode.value" @change="changeColorScheme(item)" /><label :for="`color-${item.value}`">{{
+              item.modeName }}</label>
         </div>
       </div>
       <div class="page-redirect font-setting">
@@ -228,78 +148,44 @@
               <span class="font-select-arrow">▾</span>
             </div>
           </template>
-          <div
-            ref="fontDropdownBox"
-            class="font-dropdown-box modify-scroll-bar"
-          >
-            <div
-              class="font-dropdown-item"
-              :class="{ active: fontFamily === 'system-ui' }"
-              @click="selectFont('system-ui')"
-            >
+          <div ref="fontDropdownBox" class="font-dropdown-box modify-scroll-bar">
+            <div class="font-dropdown-item" :class="{ active: fontFamily === 'system-ui' }"
+              @click="selectFont('system-ui')">
               系统默认
             </div>
-            <div
-              v-for="font in systemFonts"
-              :key="font"
-              class="font-dropdown-item"
-              :class="{ active: fontFamily === font }"
-              :style="{ fontFamily: font }"
-              @click="selectFont(font)"
-            >
+            <div v-for="font in systemFonts" :key="font" class="font-dropdown-item"
+              :class="{ active: fontFamily === font }" :style="{ fontFamily: font }" @click="selectFont(font)">
               {{ font }}
             </div>
           </div>
         </DropDown>
-        <span
-          class="font-preview"
-          :style="{
-            fontFamily:
-              fontFamily !== 'system-ui'
-                ? fontFamily + ', sans-serif'
-                : undefined,
-          }"
-          >Aa</span
-        >
+        <span class="font-preview" :style="{
+          fontFamily:
+            fontFamily !== 'system-ui'
+              ? fontFamily + ', sans-serif'
+              : undefined,
+        }">Aa</span>
       </div>
       <div class="page-redirect blur-setting">
         <div>高斯模糊:</div>
-        <input
-          type="range"
-          min="0"
-          max="30"
-          step="1"
-          v-model.number="blurValue"
-          @input="changeBlur"
-        />
+        <input type="range" min="0" max="30" step="1" v-model.number="blurValue" @input="changeBlur" />
         <span class="blur-value">{{ blurValue }}px</span>
       </div>
       <div class="page-redirect blur-setting">
         <div>背景透明:</div>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-          v-model.number="bgOpacity"
-          @input="changeBgOpacity"
-        />
+        <input type="range" min="0" max="1" step="0.05" v-model.number="bgOpacity" @input="changeBgOpacity" />
         <span class="blur-value">{{ bgOpacity.toFixed(2) }}</span>
+      </div>
+      <div class="config-import-export">
+        <button class="btn-export" @click="exportConfig">导出配置</button>
+        <button class="btn-import" @click="openImportModal">导入配置</button>
       </div>
     </Modal>
   </transition>
   <!-- 添加常用URL 弹窗 -->
   <transition name="fade">
-    <Modal
-      :show="showModal_add"
-      :confirm="true"
-      :disabled="!isAddLegal"
-      width="30%"
-      minHeight="300px"
-      minWidth="300px"
-      :doConfirm="addConfirm"
-      @close="closeModalAdd"
-    >
+    <Modal :show="showModal_add" :confirm="true" :disabled="!isAddLegal" width="30%" minHeight="300px" minWidth="300px"
+      :doConfirm="addConfirm" @close="closeModalAdd">
       <div class="list-container">
         <h1>添加常用URL</h1>
         <div class="list-item">
@@ -319,16 +205,8 @@
   </transition>
   <!-- 编辑 弹窗 -->
   <transition name="fade">
-    <Modal
-      :show="showModal_edit"
-      :confirm="true"
-      :disabled="!isEditLegal"
-      width="30%"
-      minHeight="300px"
-      minWidth="300px"
-      :doConfirm="editConfirm"
-      @close="closeModalEdit"
-    >
+    <Modal :show="showModal_edit" :confirm="true" :disabled="!isEditLegal" width="30%" minHeight="300px"
+      minWidth="300px" :doConfirm="editConfirm" @close="closeModalEdit">
       <div class="edit-container">
         <div class="list-container">
           <h1>编辑</h1>
@@ -350,18 +228,33 @@
   </transition>
   <!-- 删除确认 弹窗 -->
   <transition name="fade">
-    <Modal
-      :show="showModal_delete"
-      :confirm="true"
-      width="25%"
-      minWidth="280px"
-      minHeight="160px"
-      :doConfirm="deleteConfirm"
-      @close="closeModalDelete"
-    >
+    <Modal :show="showModal_delete" :confirm="true" width="25%" minWidth="280px" minHeight="160px"
+      :doConfirm="deleteConfirm" @close="closeModalDelete">
       <div class="delete-container delete-text">
         <h1>确认删除</h1>
         <p>确定要删除吗？此操作不可撤销。</p>
+      </div>
+    </Modal>
+  </transition>
+  <!-- 导入配置 弹窗 -->
+  <transition name="fade">
+    <Modal :show="showModal_import" :confirm="true" :disabled="!importJsonValid" width="35%" minHeight="320px"
+      minWidth="300px" :doConfirm="importConfirm" @close="closeImportModal">
+      <div class="import-container">
+        <h1>导入配置</h1>
+        <p class="import-tip">
+          请粘贴 JSON 配置内容，或选择配置文件导入。
+        </p>
+        <textarea v-model="importJsonText" class="import-textarea modify-scroll-bar" placeholder='粘贴 JSON 配置内容...'
+          spellcheck="false"></textarea>
+        <div class="import-file-row">
+          <label class="btn-import-file">
+            选择文件
+            <input type="file" accept=".json" @change="onImportFileSelected" />
+          </label>
+          <span v-if="importFileName" class="import-file-name">{{ importFileName }}</span>
+        </div>
+        <p v-if="importErrorMessage" class="import-error">{{ importErrorMessage }}</p>
       </div>
     </Modal>
   </transition>
@@ -419,6 +312,7 @@ const showModal = ref(false);
 const showModal_add = ref(false);
 const showModal_edit = ref(false);
 const showModal_delete = ref(false);
+const showModal_import = ref(false);
 const deleteTargetIndex = ref(-1);
 // 当前选中搜索引擎
 const searchEngine = ref<SearchEngine>(EnginConfig[0]);
@@ -460,6 +354,20 @@ const bgOpacity = ref(0.5);
 // 字体设置
 const fontFamily = ref("system-ui");
 const systemFonts = ref<string[]>([]);
+// 导入配置
+const importJsonText = ref("");
+const importFileName = ref("");
+const importErrorMessage = ref("");
+const importJsonValid = computed(() => {
+  if (!importJsonText.value.trim()) return false;
+  try {
+    const parsed = JSON.parse(importJsonText.value);
+    if (!parsed || typeof parsed !== "object") return false;
+    return true;
+  } catch {
+    return false;
+  }
+});
 // 判断是否合法输入
 const isAddLegal = computed(() => {
   return (
@@ -524,7 +432,7 @@ onMounted(() => {
   if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
     appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
 });
-onUnmounted(() => {});
+onUnmounted(() => { });
 watch(fontDropdownOpen, (val) => {
   if (val) {
     nextTick(() => {
@@ -656,7 +564,15 @@ function getCache() {
   if (history) searchHistory.value = JSON.parse(history) as string[];
   // 获取字体设置
   const font = getFromLocalStorage("fontFamily");
-  if (font) fontFamily.value = JSON.parse(font) as string;
+  if (font) {
+    const family = JSON.parse(font) as string;
+    if (family !== "system-ui" && !isFontAvailable(family)) {
+      fontFamily.value = "system-ui";
+      addToLocalStorage("fontFamily", "system-ui");
+    } else {
+      fontFamily.value = family;
+    }
+  }
   applyFont();
 }
 // 选择图片
@@ -781,6 +697,13 @@ function changeBgOpacity() {
   addToLocalStorage<number>("bgOpacity", bgOpacity.value);
 }
 // 加载系统字体列表
+function isFontAvailable(family: string): boolean {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return false;
+  ctx.font = "72px '" + family + "'";
+  return ctx.font.includes(family);
+}
 async function loadSystemFonts() {
   try {
     if ("queryLocalFonts" in window) {
@@ -849,6 +772,76 @@ function changeFont() {
   applyFont();
   addToLocalStorage<string>("fontFamily", fontFamily.value);
 }
+// 导出配置
+function exportConfig() {
+  const storageKeys = [
+    "webList", "engine", "redirectMode", "colorScheme",
+    "blurValue", "bgOpacity", "fontFamily",
+  ];
+  const configData: Record<string, unknown> = {};
+  for (const key of storageKeys) {
+    const raw = getFromLocalStorage(key);
+    if (raw !== null) {
+      configData[key] = JSON.parse(raw);
+    }
+  }
+  const exportObj = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: configData,
+  };
+  const blob = new Blob([JSON.stringify(exportObj, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `SimpleHomePage_config_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function openImportModal() {
+  importJsonText.value = "";
+  importFileName.value = "";
+  importErrorMessage.value = "";
+  showModal_import.value = true;
+}
+function closeImportModal() {
+  showModal_import.value = false;
+}
+function onImportFileSelected(e: Event) {
+  const fileElement = e.target as HTMLInputElement;
+  const file = fileElement.files?.[0];
+  if (!file) return;
+  importFileName.value = file.name;
+  importErrorMessage.value = "";
+  const reader = new FileReader();
+  reader.onload = () => {
+    importJsonText.value = reader.result as string;
+  };
+  reader.onerror = () => {
+    importErrorMessage.value = "文件读取失败";
+  };
+  reader.readAsText(file);
+}
+function importConfirm() {
+  try {
+    const parsed = JSON.parse(importJsonText.value);
+    const data = parsed.data || parsed;
+    if (!data || typeof data !== "object") {
+      importErrorMessage.value = "无效的配置数据格式";
+      return;
+    }
+    for (const [key, value] of Object.entries(data)) {
+      addToLocalStorage(key, value);
+    }
+    window.location.reload();
+  } catch {
+    importErrorMessage.value = "JSON 解析失败，请检查格式";
+  }
+}
 </script>
 <style lang="scss">
 /* ============================================================
@@ -860,14 +853,14 @@ function changeFont() {
   height: 100%;
   width: 100%;
   background-position: center;
-  background: linear-gradient(
-    180deg,
-    var(--bg_shadow_up),
-    var(--bg_shadow_down)
-  );
+  background: linear-gradient(180deg,
+      var(--bg_shadow_up),
+      var(--bg_shadow_down));
+
   .nav {
     margin: 0 0 3% 0;
   }
+
   .main {
     flex: 10;
     display: flex;
@@ -875,6 +868,7 @@ function changeFont() {
     width: 100%;
     flex-direction: column;
     gap: 2rem;
+
     &-box {
       width: 80%;
       height: 60%;
@@ -887,6 +881,7 @@ function changeFont() {
       padding: 3rem 0 0 0;
       box-sizing: border-box;
       z-index: 10;
+
       .show-time {
         display: flex;
         align-items: center;
@@ -904,12 +899,14 @@ function changeFont() {
           align-items: center;
           justify-content: center;
         }
+
         .date {
           height: 100%;
           flex: 1;
           display: flex;
           flex-direction: column;
           gap: 2rem;
+
           div {
             height: 50%;
             flex: 1;
@@ -919,6 +916,7 @@ function changeFont() {
           }
         }
       }
+
       .search {
         height: 12rem;
         width: 80%;
@@ -927,6 +925,7 @@ function changeFont() {
         justify-content: center;
         align-items: center;
         position: relative;
+
         &-box {
           padding: 0 1rem 0 1rem;
           box-sizing: border-box;
@@ -939,12 +938,14 @@ function changeFont() {
           background-color: none;
           transition: all 0.5s ease;
           box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
+
           &:focus-within {
             background-color: var(--bg_search);
             border-color: var(--color_mizuki);
             border-width: 1px;
             box-shadow: none;
           }
+
           .select {
             flex: 1;
             display: flex;
@@ -953,8 +954,10 @@ function changeFont() {
             height: 100%;
             max-width: 6rem;
             position: relative;
+
             .selection-box {
               position: relative;
+
               button {
                 position: absolute;
               }
@@ -972,12 +975,15 @@ function changeFont() {
             height: 100%;
             color: var(--text);
           }
+
           .do-search {
             flex: 1;
             height: 100%;
             max-width: 6rem;
+
             .logo {
               padding: 0;
+
               svg {
                 fill: var(--search_logo);
               }
@@ -987,6 +993,7 @@ function changeFont() {
       }
     }
   }
+
   .logo {
     width: 100%;
     height: 100%;
@@ -995,14 +1002,17 @@ function changeFont() {
     align-items: center;
     cursor: pointer;
     transition: all 0.3s ease;
+
     &:active {
       transform: scale(0.9);
     }
+
     svg {
       height: 5rem;
       width: 5rem;
     }
   }
+
   .foot {
     margin: 3% 0 0 0;
   }
@@ -1013,16 +1023,19 @@ function changeFont() {
    ============================================================ */
 .options-box {
   position: absolute;
-  top: calc(100% + 8px); /* 距离按钮下方 8px */
+  top: calc(100% + 8px);
+  /* 距离按钮下方 8px */
   left: 0;
   width: 100%;
   z-index: 100;
   color: var(--text);
   border-radius: 6px;
   background: var(--bg_selection);
-  border: 1px solid rgba(255, 255, 255, 0.3); /* 让毛玻璃边缘更精致 */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* 让毛玻璃边缘更精致 */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+
   .option-item {
     display: flex;
     justify-content: center;
@@ -1033,6 +1046,7 @@ function changeFont() {
     font-size: clamp(1rem, 0.8vw, 1.5rem);
     transition: background 0.2s;
     height: clamp(2rem, 2.5vh, 5rem);
+
     &:hover {
       background: var(--bg_selection_hover);
     }
@@ -1042,7 +1056,7 @@ function changeFont() {
 /* 搜索历史 */
 .history-box {
   position: absolute;
-  top: 12rem;
+  top: 115px;
   left: 1rem;
   right: 1rem;
   z-index: 100;
@@ -1053,6 +1067,7 @@ function changeFont() {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-height: 48vh;
   overflow-y: auto;
+
   .history-item {
     display: flex;
     justify-content: space-between;
@@ -1062,14 +1077,17 @@ function changeFont() {
     font-size: clamp(1.5rem, 1.2vw, 2.25rem);
     transition: background 0.2s;
     height: clamp(2.5rem, 3.5vh, 5rem);
+
     &:hover {
       background: var(--bg_selection_hover);
     }
+
     .history-text-container {
       display: flex;
       align-items: center;
       flex: 1;
       height: 100%;
+
       .history-text {
         height: 100%;
         overflow: hidden;
@@ -1079,6 +1097,7 @@ function changeFont() {
         align-items: center;
       }
     }
+
     .history-delete {
       background: none;
       border: none;
@@ -1088,6 +1107,7 @@ function changeFont() {
       font-size: 1.2em;
       opacity: 0.5;
       flex-shrink: 0;
+
       &:hover {
         opacity: 1;
         color: var(--color_mizuki);
@@ -1105,24 +1125,29 @@ function changeFont() {
     opacity 0.3s ease,
     transform 0.3s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
 }
+
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
   transform: translateY(0px);
 }
+
 .show-enter-active,
 .show-leave-active {
   transition: all 0.3s ease;
 }
+
 .show-enter-from,
 .show-leave-to {
   opacity: 0;
 }
+
 .show-enter-to,
 .show-leave-from {
   opacity: 1;
@@ -1136,6 +1161,7 @@ function changeFont() {
   background: (var(--bg_mainbox));
   backdrop-filter: blur(var(--val_blur));
 }
+
 .setting-list {
   display: flex;
   flex-direction: column;
@@ -1144,9 +1170,11 @@ function changeFont() {
   right: 3vw;
   bottom: 5vh;
   gap: 1rem;
+
   svg {
     fill: var(--search_logo);
   }
+
   .settings,
   .add-url {
     height: 5rem;
@@ -1154,6 +1182,7 @@ function changeFont() {
     padding: 1rem;
     box-sizing: border-box;
     cursor: pointer;
+
     &:active svg {
       transition: all 0.3s ease;
       transform: scale(0.9);
@@ -1169,17 +1198,21 @@ function changeFont() {
     font-size: clamp(1.5rem, 1.5vw, 2rem);
     transition: all 0.3s ease;
   }
+
   &:has(input[type="text"]:focus) h2 {
     color: var(--color_mizuki);
   }
 }
+
 .list-container {
   width: 100%;
   display: flex;
   flex-direction: column;
+
   h1 {
     font-size: clamp(2rem, 2vw, 4rem);
   }
+
   input[type="text"] {
     box-sizing: border-box;
     border-radius: 3px;
@@ -1193,13 +1226,16 @@ function changeFont() {
     font-size: 2rem;
     color: var(--text);
     transition: all 0.3s ease;
+
     &:focus {
       border-color: var(--color_mizuki);
     }
   }
 }
+
 .setBackgroundImg {
   width: 100%;
+
   .bg-preview {
     display: block;
     position: relative;
@@ -1210,12 +1246,14 @@ function changeFont() {
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--text-h);
+
     .bg-preview-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
+
     .bg-preview-mask {
       position: absolute;
       inset: 0;
@@ -1226,6 +1264,7 @@ function changeFont() {
       background-color: rgba(0, 0, 0, 0.4);
       opacity: 0;
       transition: opacity 0.3s ease;
+
       .mask-action {
         color: #fff;
         font-size: clamp(1.5rem, 1.5vw, 2rem);
@@ -1238,33 +1277,40 @@ function changeFont() {
         min-width: 50px;
         max-width: 100px;
         cursor: pointer;
+
         svg {
           width: 100%;
           height: 100%;
           fill: currentColor;
         }
+
         &:hover {
           color: var(--color_mizuki);
         }
+
         &:active {
           transform: scale(0.95);
         }
       }
+
       .mask-divider {
         width: 1px;
         align-self: stretch;
         margin: 20% 0;
         background-color: rgba(255, 255, 255, 0.5);
       }
+
       input[type="file"] {
         display: none;
       }
     }
+
     &:hover .bg-preview-mask {
       opacity: 1;
     }
   }
 }
+
 /* ============================================================
    6. 常用 URL 网格（可拖拽排序）
    ============================================================ */
@@ -1287,7 +1333,8 @@ function changeFont() {
 
 .grid-item {
   position: relative;
-  aspect-ratio: 1 / 1; /* 保持正方形 */
+  aspect-ratio: 1 / 1;
+  /* 保持正方形 */
   border-radius: 2rem;
   display: flex;
   flex-direction: column;
@@ -1300,22 +1347,27 @@ function changeFont() {
     box-shadow 0.2s;
   overflow: hidden;
   gap: 0.5rem;
+
   &:active {
     cursor: grabbing;
   }
+
   &:hover .icon {
     opacity: 1;
   }
+
   .delete_ico {
     opacity: 0;
     top: 5%;
     right: 5%;
   }
+
   .edit_ico {
     opacity: 0;
     top: 5%;
     left: 5%;
   }
+
   .icon {
     height: 18%;
     width: 18%;
@@ -1324,18 +1376,22 @@ function changeFont() {
     padding: 0.5rem;
     box-sizing: border-box;
     transition: all 0.3s ease;
+
     &:hover {
       background-color: var(--bg_modal);
     }
+
     svg {
       fill: var(--search_logo);
     }
   }
+
   .avatar-img {
     width: 60%;
     height: 60%;
     object-fit: contain;
   }
+
   .avatar-text {
     width: 60%;
     height: 60%;
@@ -1348,6 +1404,7 @@ function changeFont() {
     font-weight: bold;
     border-radius: 50%;
   }
+
   .name-label {
     font-size: 1.5rem;
     width: 90%;
@@ -1377,43 +1434,53 @@ function changeFont() {
   display: flex;
   align-items: center;
   gap: 1rem;
+
   &-option {
     width: fit-content;
     height: fit-content;
     padding: 0.5rem;
+
     input[type="radio"] {
       cursor: pointer;
     }
+
     input[type="radio"]:checked {
       accent-color: var(--color_mizuki);
     }
+
     label {
       cursor: pointer;
     }
   }
 }
+
 .delete-text {
   h1 {
     font-size: clamp(2rem, 2vw, 4rem);
   }
+
   p {
     margin-top: 3rem;
     font-size: clamp(1.5rem, 1.5vw, 2rem);
   }
 }
+
 .blur-setting {
   input[type="range"] {
     flex: 1;
     cursor: pointer;
     accent-color: var(--color_mizuki);
   }
+
   .blur-value {
     min-width: 4rem;
     text-align: right;
   }
 }
+
 .font-setting {
   position: relative;
+
   .font-select {
     height: 2rem;
     flex: 1;
@@ -1429,15 +1496,18 @@ function changeFont() {
     color: var(--text);
     user-select: none;
     transition: border 0.3s ease;
+
     .font-select-arrow {
       font-size: 1.2rem;
       margin-left: 0.5rem;
       opacity: 0.6;
     }
+
     &:hover {
       border-color: var(--color_mizuki);
     }
   }
+
   .font-dropdown-box {
     position: absolute;
     top: calc(100% + 4px);
@@ -1450,6 +1520,7 @@ function changeFont() {
     background: var(--bg_selection);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
     .font-dropdown-item {
       padding: 6px 8px;
       cursor: pointer;
@@ -1458,18 +1529,311 @@ function changeFont() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
       &.active {
         color: var(--color_mizuki);
       }
+
       &:hover {
         background: var(--bg_selection_hover);
       }
     }
   }
+
   .font-preview {
     min-width: 3rem;
     text-align: right;
     font-size: clamp(1.5rem, 1.5vw, 2rem);
+  }
+}
+
+/* ============================================================
+   8. 导入 / 导出配置
+   ============================================================ */
+.config-import-export {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0 0 0;
+  justify-content: flex-end;
+
+  .btn-export,
+  .btn-import {
+    padding: 6px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid var(--text-h);
+    font-size: clamp(1.2rem, 1.2vw, 1.6rem);
+    background: none;
+    color: var(--text);
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: var(--color_mizuki);
+      color: var(--color_mizuki);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.import-container {
+  h1 {
+    font-size: clamp(2rem, 2vw, 4rem);
+  }
+
+  .import-tip {
+    margin: 1rem 0;
+    font-size: clamp(1.2rem, 1.2vw, 1.6rem);
+    color: var(--text);
+  }
+
+  .import-textarea {
+    width: 100%;
+    height: 200px;
+    box-sizing: border-box;
+    resize: none;
+    padding: 0.8rem;
+    font-size: clamp(1.2rem, 1.2vw, 1.4rem);
+    font-family: var(--mono);
+    border-radius: 6px;
+    border: 1px solid var(--text-h);
+    background: var(--bg_search);
+    color: var(--text);
+    outline: none;
+    transition: border 0.3s ease;
+
+    &:focus {
+      border-color: var(--color_mizuki);
+    }
+  }
+
+  .import-file-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+
+    .btn-import-file {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 2rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--text-h);
+      font-size: clamp(1.2rem, 1.2vw, 1.5rem);
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: var(--color_mizuki);
+        color: var(--color_mizuki);
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+    }
+
+    .import-file-name {
+      font-size: clamp(1.1rem, 1.1vw, 1.3rem);
+      color: var(--color_mizuki);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .import-error {
+    color: var(--color_alert);
+    font-size: clamp(1.1rem, 1.1vw, 1.4rem);
+    margin: 0.5rem 0 0 0;
+  }
+}
+
+/* ============================================================
+   9. 移动端适配 (max-width: 600px)
+   ============================================================ */
+@media screen and (max-width: 600px) {
+  #app {
+    min-height: 100vh;
+  }
+
+  .home {
+    .main {
+      gap: 1rem;
+
+      &-box {
+        width: 95%;
+        min-width: unset;
+        height: 30%;
+        gap: 1rem;
+        padding: 1.5rem 0 0 0;
+
+        .show-time {
+          width: 90%;
+          padding: 0.5rem;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          .time {
+            flex: unset;
+            font-size: clamp(2.5rem, 14vw, 5rem);
+          }
+
+          .date {
+            flex: unset;
+            flex-direction: row;
+            gap: 1rem;
+
+            div {
+              font-size: clamp(1rem, 5vw, 2rem);
+            }
+          }
+        }
+
+        .search {
+          width: 90%;
+          height: auto;
+          padding: 0.5rem;
+
+          &-box {
+            height: 5rem;
+            border-radius: 3rem;
+            padding: 0 0.5rem 0 0.5rem;
+
+            input[type="text"] {
+              font-size: 1.6rem;
+            }
+
+            .select {
+              flex: none;
+              width: 5rem;
+            }
+
+            .do-search {
+              max-width: 4rem;
+            }
+          }
+        }
+      }
+    }
+
+    .logo svg {
+      height: 3.2rem;
+      width: 3.2rem;
+    }
+  }
+
+  .container {
+    width: 95%;
+    min-width: unset;
+    max-height: 280px;
+  }
+
+  .grid-list {
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 8px;
+  }
+
+  .grid-item {
+    border-radius: 1.2rem;
+
+    .icon {
+      height: 25%;
+      width: 25%;
+    }
+
+    .avatar-img {
+      width: 55%;
+      height: 55%;
+    }
+
+    .avatar-text {
+      width: 55%;
+      height: 55%;
+      font-size: 1.3rem;
+    }
+
+    .name-label {
+      font-size: 1.2rem;
+      padding: 0.4rem 0.2rem;
+    }
+  }
+
+  .setting-list {
+    right: 2vw;
+    bottom: 3vh;
+    gap: 0.6rem;
+
+    .settings,
+    .add-url {
+      height: 4rem;
+      width: 4rem;
+      padding: 0.8rem;
+    }
+  }
+
+  .history-box {
+    top: 60px;
+    left: 0.3rem;
+    right: 0.3rem;
+
+    .history-item {
+      padding: 6px 10px;
+      font-size: clamp(1.3rem, 4vw, 1.8rem);
+      height: clamp(2.2rem, 6vh, 4rem);
+    }
+  }
+
+  .options-box .option-item {
+    padding: 4px 2px;
+    gap: 3px;
+    font-size: clamp(0.8rem, 3vw, 1.2rem);
+    height: clamp(1.8rem, 5vh, 3.5rem);
+  }
+
+  .page-redirect {
+    flex-wrap: wrap;
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    gap: 0.5rem;
+  }
+
+  .font-setting {
+    .font-dropdown-box {
+      max-height: 25vh;
+
+      .font-dropdown-item {
+        font-size: clamp(1rem, 3.5vw, 1.3rem);
+      }
+    }
+  }
+
+  .config-import-export {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .btn-export,
+    .btn-import {
+      flex: 1;
+      min-width: 80px;
+      text-align: center;
+    }
+  }
+
+  .import-container {
+    .import-textarea {
+      height: 150px;
+      font-size: 1.2rem;
+    }
+
+    .import-file-row {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
   }
 }
 </style>

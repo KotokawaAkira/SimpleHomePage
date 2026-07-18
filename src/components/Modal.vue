@@ -145,4 +145,26 @@ const confirm = () => {
     cursor: not-allowed;
   }
 }
+
+@media screen and (max-width: 600px) {
+  .modal-container {
+    width: 90% !important;
+    min-width: unset !important;
+    min-height: unset !important;
+    padding: 1.2rem;
+    max-height: 85vh;
+    border-radius: 1.5rem;
+  }
+  .modal-content {
+    padding: 0 0.3rem 0 0;
+  }
+  .modal-button-list {
+    margin: 1rem 0 0 0;
+    gap: 0.6rem;
+  }
+  .btn {
+    padding: 6px 14px;
+    font-size: 1.4rem;
+  }
+}
 </style>
