@@ -18,23 +18,40 @@
             <DropDown v-model="isOpen" class="select">
               <template #trigger>
                 <div class="selection-box" title="更换搜索引擎">
-                  <transition name="show" mode="out-in" v-for="engine in EnginConfig" :key="'A' + engine.index">
-                    <button class="logo" v-if="searchEngine.index === engine.index">
+                  <transition
+                    name="show"
+                    mode="out-in"
+                    v-for="engine in EnginConfig"
+                    :key="'A' + engine.index"
+                  >
+                    <button
+                      class="logo"
+                      v-if="searchEngine.index === engine.index"
+                    >
                       <component :is="engine.logo_url" />
                     </button>
                   </transition>
                 </div>
               </template>
               <div class="options-box">
-                <div class="option-item" v-for="engine in EnginConfig" :key="'B' + engine.index"
-                  @click="selectOption(engine)">
+                <div
+                  class="option-item"
+                  v-for="engine in EnginConfig"
+                  :key="'B' + engine.index"
+                  @click="selectOption(engine)"
+                >
                   <component :is="engine.logo_url" />
                   <span>{{ engine.engineName }}</span>
                 </div>
               </div>
             </DropDown>
-            <input type="text" v-model="inputText" v-on:keydown="onEnterPress" @focus="showHistory = true"
-              @blur="hideHistoryDelayed" />
+            <input
+              type="text"
+              v-model="inputText"
+              v-on:keydown="onEnterPress"
+              @focus="showHistory = true"
+              @blur="hideHistoryDelayed"
+            />
             <div class="do-search" @click="doSearch">
               <button class="logo">
                 <search_logo />
@@ -43,13 +60,24 @@
           </div>
           <!-- 搜索历史 -->
           <transition name="fade">
-            <div v-show="showHistory && filteredHistory.length > 0" class="history-box modify-scroll-bar">
-              <div class="history-item" v-for="(item, index) in filteredHistory" :key="index"
-                @mousedown.prevent="selectHistoryItem(item)">
+            <div
+              v-show="showHistory && filteredHistory.length > 0"
+              class="history-box modify-scroll-bar"
+            >
+              <div
+                class="history-item"
+                v-for="(item, index) in filteredHistory"
+                :key="index"
+                @mousedown.prevent="selectHistoryItem(item)"
+              >
                 <div class="history-text-container">
                   <span class="history-text">{{ item }}</span>
                 </div>
-                <button class="history-delete" @mousedown.stop.prevent @click.stop="deleteHistoryItem(index)">
+                <button
+                  class="history-delete"
+                  @mousedown.stop.prevent
+                  @click.stop="deleteHistoryItem(index)"
+                >
                   ×
                 </button>
               </div>
@@ -59,18 +87,39 @@
       </div>
       <!-- 常用URL栏 -->
       <div class="container modify-scroll-bar">
-        <draggable v-model="webList" item-key="id" class="grid-list" animation="300" ghost-class="ghost">
+        <draggable
+          v-model="webList"
+          item-key="id"
+          class="grid-list"
+          animation="300"
+          ghost-class="ghost"
+        >
           <template #item="{ element, index }" :key="element">
             <a :href="element.url">
-              <div class="grid-item box_bg" @click.prevent="goWebsite(element.url)">
-                <div class="icon delete_ico" title="删除" @click.stop.prevent="openDeleteConfirm(index)">
+              <div
+                class="grid-item box_bg"
+                @click.prevent="goWebsite(element.url)"
+              >
+                <div
+                  class="icon delete_ico"
+                  title="删除"
+                  @click.stop.prevent="openDeleteConfirm(index)"
+                >
                   <delete_ico />
                 </div>
-                <div class="icon edit_ico" title="编辑" @click.stop.prevent="openEdit(element, index)">
+                <div
+                  class="icon edit_ico"
+                  title="编辑"
+                  @click.stop.prevent="openEdit(element, index)"
+                >
                   <menu_ico />
                 </div>
                 <template v-if="element.url && element.iconUrl.length > 0">
-                  <img :src="element.iconUrl" :alt="element.webName" class="avatar-img" />
+                  <img
+                    :src="element.iconUrl"
+                    :alt="element.webName"
+                    class="avatar-img"
+                  />
                 </template>
                 <template v-else>
                   <div class="avatar-text">
@@ -89,7 +138,11 @@
     <footer class="foot">
       <!-- 右下角图标 -->
       <div class="setting-list">
-        <button class="add-url box_bg" title="添加常用URL" @click="showModal_add = true">
+        <button
+          class="add-url box_bg"
+          title="添加常用URL"
+          @click="showModal_add = true"
+        >
           <add />
         </button>
         <button class="settings box_bg" title="设置" @click="showModal = true">
@@ -104,12 +157,21 @@
       <div class="setBackgroundImg">
         <h1>设置背景图片</h1>
         <div class="bg-preview">
-          <img v-if="backgroundImageBase64" :src="backgroundImageBase64" alt="当前背景图片" class="bg-preview-img" />
+          <img
+            v-if="backgroundImageBase64"
+            :src="backgroundImageBase64"
+            alt="当前背景图片"
+            class="bg-preview-img"
+          />
           <div class="bg-preview-mask">
             <label class="mask-action" title="更改背景">
               <!-- <span>更改背景</span> -->
               <images />
-              <input type="file" accept="image/png,image/jpg,image/jpeg" @change="uploadBackground" />
+              <input
+                type="file"
+                accept="image/png,image/jpg,image/jpeg"
+                @change="uploadBackground"
+              />
             </label>
             <div class="mask-divider"></div>
             <button class="mask-action" title="恢复默认" @click="restoreImg">
@@ -120,21 +182,39 @@
       </div>
       <div class="page-redirect">
         <div>页面跳转:</div>
-        <div v-for="item in RedirectModeConfig" class="page-redirect-option" @click="changeRedirectMode(item)">
-          <input type="radio" name="mode-redirect" :id="`${item.value}/${item.modeName}`" :value="item.value"
-            v-model="redirectMode.value" @change="changeRedirectMode(item)" /><label
-            :for="`${item.value}/${item.modeName}`">{{
-              item.modeName
-            }}</label>
+        <div
+          v-for="item in RedirectModeConfig"
+          class="page-redirect-option"
+          @click="changeRedirectMode(item)"
+        >
+          <input
+            type="radio"
+            name="mode-redirect"
+            :id="`${item.value}/${item.modeName}`"
+            :value="item.value"
+            v-model="redirectMode.value"
+            @change="changeRedirectMode(item)"
+          /><label :for="`${item.value}/${item.modeName}`">{{
+            item.modeName
+          }}</label>
         </div>
       </div>
       <div class="page-redirect">
         <div>颜色主题:</div>
-        <div v-for="item in ColorSchemeConfig" :key="item.value" class="page-redirect-option"
-          @click="changeColorScheme(item)">
-          <input type="radio" name="mode-color-scheme" :id="`color-${item.value}`" :value="item.value"
-            v-model="colorSchemeMode.value" @change="changeColorScheme(item)" /><label :for="`color-${item.value}`">{{
-              item.modeName }}</label>
+        <div
+          v-for="item in ColorSchemeConfig"
+          :key="item.value"
+          class="page-redirect-option"
+          @click="changeColorScheme(item)"
+        >
+          <input
+            type="radio"
+            name="mode-color-scheme"
+            :id="`color-${item.value}`"
+            :value="item.value"
+            v-model="colorSchemeMode.value"
+            @change="changeColorScheme(item)"
+          /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
         </div>
       </div>
       <div class="page-redirect font-setting">
@@ -148,32 +228,62 @@
               <span class="font-select-arrow">▾</span>
             </div>
           </template>
-          <div ref="fontDropdownBox" class="font-dropdown-box modify-scroll-bar">
-            <div class="font-dropdown-item" :class="{ active: fontFamily === 'system-ui' }"
-              @click="selectFont('system-ui')">
+          <div
+            ref="fontDropdownBox"
+            class="font-dropdown-box modify-scroll-bar"
+          >
+            <div
+              class="font-dropdown-item"
+              :class="{ active: fontFamily === 'system-ui' }"
+              @click="selectFont('system-ui')"
+            >
               系统默认
             </div>
-            <div v-for="font in systemFonts" :key="font" class="font-dropdown-item"
-              :class="{ active: fontFamily === font }" :style="{ fontFamily: font }" @click="selectFont(font)">
+            <div
+              v-for="font in systemFonts"
+              :key="font"
+              class="font-dropdown-item"
+              :class="{ active: fontFamily === font }"
+              :style="{ fontFamily: font }"
+              @click="selectFont(font)"
+            >
               {{ font }}
             </div>
           </div>
         </DropDown>
-        <span class="font-preview" :style="{
-          fontFamily:
-            fontFamily !== 'system-ui'
-              ? fontFamily + ', sans-serif'
-              : undefined,
-        }">Aa</span>
+        <span
+          class="font-preview"
+          :style="{
+            fontFamily:
+              fontFamily !== 'system-ui'
+                ? fontFamily + ', sans-serif'
+                : undefined,
+          }"
+          >Aa</span
+        >
       </div>
       <div class="page-redirect blur-setting">
         <div>高斯模糊:</div>
-        <input type="range" min="0" max="30" step="1" v-model.number="blurValue" @input="changeBlur" />
+        <input
+          type="range"
+          min="0"
+          max="30"
+          step="1"
+          v-model.number="blurValue"
+          @input="changeBlur"
+        />
         <span class="blur-value">{{ blurValue }}px</span>
       </div>
       <div class="page-redirect blur-setting">
         <div>背景透明:</div>
-        <input type="range" min="0" max="1" step="0.05" v-model.number="bgOpacity" @input="changeBgOpacity" />
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          v-model.number="bgOpacity"
+          @input="changeBgOpacity"
+        />
         <span class="blur-value">{{ bgOpacity.toFixed(2) }}</span>
       </div>
       <div class="config-import-export">
@@ -184,8 +294,16 @@
   </transition>
   <!-- 添加常用URL 弹窗 -->
   <transition name="fade">
-    <Modal :show="showModal_add" :confirm="true" :disabled="!isAddLegal" width="30%" minHeight="300px" minWidth="300px"
-      :doConfirm="addConfirm" @close="closeModalAdd">
+    <Modal
+      :show="showModal_add"
+      :confirm="true"
+      :disabled="!isAddLegal"
+      width="30%"
+      minHeight="300px"
+      minWidth="300px"
+      :doConfirm="addConfirm"
+      @close="closeModalAdd"
+    >
       <div class="list-container">
         <h1>添加常用URL</h1>
         <div class="list-item">
@@ -205,8 +323,16 @@
   </transition>
   <!-- 编辑 弹窗 -->
   <transition name="fade">
-    <Modal :show="showModal_edit" :confirm="true" :disabled="!isEditLegal" width="30%" minHeight="300px"
-      minWidth="300px" :doConfirm="editConfirm" @close="closeModalEdit">
+    <Modal
+      :show="showModal_edit"
+      :confirm="true"
+      :disabled="!isEditLegal"
+      width="30%"
+      minHeight="300px"
+      minWidth="300px"
+      :doConfirm="editConfirm"
+      @close="closeModalEdit"
+    >
       <div class="edit-container">
         <div class="list-container">
           <h1>编辑</h1>
@@ -228,8 +354,15 @@
   </transition>
   <!-- 删除确认 弹窗 -->
   <transition name="fade">
-    <Modal :show="showModal_delete" :confirm="true" width="25%" minWidth="280px" minHeight="160px"
-      :doConfirm="deleteConfirm" @close="closeModalDelete">
+    <Modal
+      :show="showModal_delete"
+      :confirm="true"
+      width="25%"
+      minWidth="280px"
+      minHeight="160px"
+      :doConfirm="deleteConfirm"
+      @close="closeModalDelete"
+    >
       <div class="delete-container delete-text">
         <h1>确认删除</h1>
         <p>确定要删除吗？此操作不可撤销。</p>
@@ -238,23 +371,38 @@
   </transition>
   <!-- 导入配置 弹窗 -->
   <transition name="fade">
-    <Modal :show="showModal_import" :confirm="true" :disabled="!importJsonValid" width="35%" minHeight="320px"
-      minWidth="300px" :doConfirm="importConfirm" @close="closeImportModal">
+    <Modal
+      :show="showModal_import"
+      :confirm="true"
+      :disabled="!importJsonValid"
+      width="35%"
+      minHeight="320px"
+      minWidth="300px"
+      :doConfirm="importConfirm"
+      disable
+      @close="closeImportModal"
+    >
       <div class="import-container">
         <h1>导入配置</h1>
-        <p class="import-tip">
-          请粘贴 JSON 配置内容，或选择配置文件导入。
-        </p>
-        <textarea v-model="importJsonText" class="import-textarea modify-scroll-bar" placeholder='粘贴 JSON 配置内容...'
-          spellcheck="false"></textarea>
+        <p class="import-tip">请粘贴 JSON 配置内容，或选择配置文件导入。</p>
+        <textarea
+          v-model="importJsonText"
+          class="import-textarea modify-scroll-bar"
+          placeholder="粘贴 JSON 配置内容..."
+          spellcheck="false"
+        ></textarea>
         <div class="import-file-row">
           <label class="btn-import-file">
             选择文件
             <input type="file" accept=".json" @change="onImportFileSelected" />
           </label>
-          <span v-if="importFileName" class="import-file-name">{{ importFileName }}</span>
+          <span v-if="importFileName" class="import-file-name">{{
+            importFileName
+          }}</span>
         </div>
-        <p v-if="importErrorMessage" class="import-error">{{ importErrorMessage }}</p>
+        <p v-if="importErrorMessage" class="import-error">
+          {{ importErrorMessage }}
+        </p>
       </div>
     </Modal>
   </transition>
@@ -358,16 +506,10 @@ const systemFonts = ref<string[]>([]);
 const importJsonText = ref("");
 const importFileName = ref("");
 const importErrorMessage = ref("");
-const importJsonValid = computed(() => {
-  if (!importJsonText.value.trim()) return false;
-  try {
-    const parsed = JSON.parse(importJsonText.value);
-    if (!parsed || typeof parsed !== "object") return false;
-    return true;
-  } catch {
-    return false;
-  }
-});
+const importJsonValid = computed(
+  () =>
+    importJsonText.value.trim().length > 0 || importFileName.value.length > 0,
+);
 // 判断是否合法输入
 const isAddLegal = computed(() => {
   return (
@@ -432,7 +574,7 @@ onMounted(() => {
   if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
     appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
 });
-onUnmounted(() => { });
+onUnmounted(() => {});
 watch(fontDropdownOpen, (val) => {
   if (val) {
     nextTick(() => {
@@ -775,8 +917,13 @@ function changeFont() {
 // 导出配置
 function exportConfig() {
   const storageKeys = [
-    "webList", "engine", "redirectMode", "colorScheme",
-    "blurValue", "bgOpacity", "fontFamily",
+    "webList",
+    "engine",
+    "redirectMode",
+    "colorScheme",
+    "blurValue",
+    "bgOpacity",
+    "fontFamily",
   ];
   const configData: Record<string, unknown> = {};
   for (const key of storageKeys) {
@@ -853,9 +1000,11 @@ function importConfirm() {
   height: 100%;
   width: 100%;
   background-position: center;
-  background: linear-gradient(180deg,
-      var(--bg_shadow_up),
-      var(--bg_shadow_down));
+  background: linear-gradient(
+    180deg,
+    var(--bg_shadow_up),
+    var(--bg_shadow_down)
+  );
 
   .nav {
     margin: 0 0 3% 0;
@@ -1554,7 +1703,7 @@ function importConfirm() {
   display: flex;
   gap: 1rem;
   margin: 2rem 0 0 0;
-  justify-content: flex-end;
+  justify-content: flex-start;
 
   .btn-export,
   .btn-import {
@@ -1833,6 +1982,11 @@ function importConfirm() {
     .import-file-row {
       flex-wrap: wrap;
       gap: 0.5rem;
+    }
+  }
+  .setBackgroundImg {
+    .bg-preview {
+      width: 100%;
     }
   }
 }
