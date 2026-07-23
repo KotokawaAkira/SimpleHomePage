@@ -5,7 +5,7 @@ type MyDate = {
   date: number;
   month: number;
   hours: number;
-  minites: number;
+  minutes: number;
   seconds: number;
 };
 // 常用页面类型

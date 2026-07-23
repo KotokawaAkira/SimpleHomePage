@@ -89,7 +89,7 @@
       <div class="container modify-scroll-bar">
         <draggable
           v-model="webList"
-          item-key="id"
+          item-key="webList1"
           class="grid-list"
           animation="300"
           ghost-class="ghost"
@@ -428,7 +428,7 @@ const time = reactive<MyDate>({
   date: nowDate.getDate(),
   month: nowDate.getMonth(),
   hours: nowDate.getHours(),
-  minites: nowDate.getMinutes(),
+  minutes: nowDate.getMinutes(),
   seconds: nowDate.getSeconds(),
 });
 const showModal = ref(false);
@@ -442,7 +442,7 @@ const searchEngine = ref<SearchEngine>(EnginConfig[0]);
 // 响应式计算时间
 const timeString = computed(
   () =>
-    `${checkTimeLength(time.hours)}:${checkTimeLength(time.minites)}:${checkTimeLength(time.seconds)}`,
+    `${checkTimeLength(time.hours)}:${checkTimeLength(time.minutes)}:${checkTimeLength(time.seconds)}`,
 );
 // 响应输入数据
 const inputText = ref("");
@@ -522,7 +522,7 @@ setInterval(() => {
   time.day = newTime.getDay();
   time.date = newTime.getDate();
   time.hours = newTime.getHours();
-  time.minites = newTime.getMinutes();
+  time.minutes = newTime.getMinutes();
   time.seconds = newTime.getSeconds();
 }, 1000);
 // 选项框弹窗
