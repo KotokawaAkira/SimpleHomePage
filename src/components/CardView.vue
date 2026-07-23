@@ -14,11 +14,12 @@
     >
       <menu_ico />
     </div>
-    <template v-if="element.url && element.iconUrl && element.iconUrl.length > 0">
+    <template v-if="element.url && !imgLoadFailed && getFaviconUrl()">
       <img
-        :src="element.iconUrl"
+        :src="getFaviconUrl()"
         :alt="element.webName"
         class="avatar-img"
+        @error="onImgError"
       />
     </template>
     <template v-else>
@@ -33,20 +34,40 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import delete_ico from "../assets/delete.svg";
 import menu_ico from "../assets/menu.svg";
 import type { FrequentWebsite } from "../types/types";
 
-defineProps<{
+const props = defineProps<{
   element: FrequentWebsite;
   index: number;
 }>();
 
 defineEmits<{
-  "click": [url: string];
-  "delete": [index: number];
-  "edit": [website: FrequentWebsite, index: number];
+  click: [url: string];
+  delete: [index: number];
+  edit: [website: FrequentWebsite, index: number];
 }>();
+
+const imgLoadFailed = ref(false);
+
+function getFaviconUrl(): string {
+  if (props.element.iconUrl && props.element.iconUrl.length > 0) {
+    return props.element.iconUrl;
+  }
+  if (!props.element.url) return "";
+  try {
+    const domain = new URL(props.element.url).hostname;
+    return `https://favicon.im/${domain}?larger=true`;
+  } catch {
+    return "";
+  }
+}
+
+function onImgError() {
+  imgLoadFailed.value = true;
+}
 
 function getInitial(name: string) {
   if (!name) return "?";
