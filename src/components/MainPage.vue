@@ -96,40 +96,14 @@
         >
           <template #item="{ element, index }" :key="element">
             <a :href="element.url">
-              <div
-                class="grid-item box_bg"
-                @click.prevent="goWebsite(element.url)"
-              >
-                <div
-                  class="icon delete_ico"
-                  title="删除"
-                  @click.stop.prevent="openDeleteConfirm(index)"
-                >
-                  <delete_ico />
-                </div>
-                <div
-                  class="icon edit_ico"
-                  title="编辑"
-                  @click.stop.prevent="openEdit(element, index)"
-                >
-                  <menu_ico />
-                </div>
-                <template v-if="element.url && element.iconUrl.length > 0">
-                  <img
-                    :src="element.iconUrl"
-                    :alt="element.webName"
-                    class="avatar-img"
-                  />
-                </template>
-                <template v-else>
-                  <div class="avatar-text">
-                    {{ getInitial(element.webName) }}
-                  </div>
-                </template>
-                <div class="name-label" :title="element.webName">
-                  {{ element.webName }}
-                </div>
-              </div>
+              <CardView
+                :element="element"
+                :index="index"
+                class="box_bg"
+                @click="goWebsite"
+                @delete="openDeleteConfirm"
+                @edit="openEdit"
+              />
             </a>
           </template>
         </draggable>
@@ -418,12 +392,12 @@ import {
   watch,
 } from "vue";
 import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
+
 import draggable from "vuedraggable";
 import search_logo from "../assets/magnifier-search.svg";
 import settings from "../assets/settings.svg";
 import add from "../assets/add.svg";
-import delete_ico from "../assets/delete.svg";
-import menu_ico from "../assets/menu.svg";
+
 import defaultImg from "../assets/1.png";
 import images from "../assets/images.svg";
 import refresh from "../assets/refresh.svg";
@@ -438,6 +412,7 @@ import {
   removeImgStorage,
 } from "../../tools/useCache";
 import Modal from "./Modal.vue";
+import CardView from "./CardView.vue";
 import DropDown from "./DropDown.vue";
 import { readImgToBase64 } from "../../tools/useFile";
 import type { RedirectMode } from "../config/redirectModeConfig";
@@ -729,11 +704,7 @@ function uploadBackground(e: Event) {
     backgroundImageBase64.value = result;
   });
 }
-// 获取首字母并转大写
-function getInitial(name: string) {
-  if (!name) return "?";
-  return name.charAt(0).toUpperCase();
-}
+
 // 添加到主页
 function addToHome(item: FrequentWebsite) {
   webList.value.push({
@@ -1461,8 +1432,8 @@ function importConfirm() {
 }
 
 /* ============================================================
-   6. 常用 URL 网格（可拖拽排序）
-   ============================================================ */
+    6. 常用 URL 网格（可拖拽排序）
+    ============================================================ */
 .container {
   border-radius: 2rem;
   box-sizing: border-box;
@@ -1473,100 +1444,12 @@ function importConfirm() {
   padding: 0 5px 0 0;
 }
 
-/* 核心 Grid 布局：auto-fill 自动填充，minmax 保证最小 120px */
 .grid-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 16px;
 }
 
-.grid-item {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  /* 保持正方形 */
-  border-radius: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  overflow: hidden;
-  gap: 0.5rem;
-
-  &:active {
-    cursor: grabbing;
-  }
-
-  &:hover .icon {
-    opacity: 1;
-  }
-
-  .delete_ico {
-    opacity: 0;
-    top: 5%;
-    right: 5%;
-  }
-
-  .edit_ico {
-    opacity: 0;
-    top: 5%;
-    left: 5%;
-  }
-
-  .icon {
-    height: 18%;
-    width: 18%;
-    position: absolute;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background-color: var(--bg_modal);
-    }
-
-    svg {
-      fill: var(--search_logo);
-    }
-  }
-
-  .avatar-img {
-    width: 60%;
-    height: 60%;
-    object-fit: contain;
-  }
-
-  .avatar-text {
-    width: 60%;
-    height: 60%;
-    background-color: var(--color_mizuki);
-    color: var(--code-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: bold;
-    border-radius: 50%;
-  }
-
-  .name-label {
-    font-size: 1.5rem;
-    width: 90%;
-    text-align: center;
-    box-sizing: border-box;
-    padding: 1rem 0.5rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-/* 拖拽时的幽灵效果 */
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
@@ -1574,8 +1457,8 @@ function importConfirm() {
 }
 
 /* ============================================================
-   7. 弹窗补充样式（页面跳转 / 删除确认）
-   ============================================================ */
+    7. 弹窗补充样式（页面跳转 / 删除确认）
+    ============================================================ */
 .page-redirect {
   margin: 2rem 0;
   height: fit-content;
@@ -1886,31 +1769,6 @@ function importConfirm() {
   .grid-list {
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
     gap: 8px;
-  }
-
-  .grid-item {
-    border-radius: 1.2rem;
-
-    .icon {
-      height: 25%;
-      width: 25%;
-    }
-
-    .avatar-img {
-      width: 55%;
-      height: 55%;
-    }
-
-    .avatar-text {
-      width: 55%;
-      height: 55%;
-      font-size: 1.3rem;
-    }
-
-    .name-label {
-      font-size: 1.2rem;
-      padding: 0.4rem 0.2rem;
-    }
   }
 
   .setting-list {
