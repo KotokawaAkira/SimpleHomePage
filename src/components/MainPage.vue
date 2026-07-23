@@ -449,7 +449,7 @@ const inputText = ref("");
 const searchHistory = ref<string[]>([]);
 const showHistory = ref(false);
 const historyMaxCount = 10;
-let historyBlurTimer: ReturnType<typeof setTimeout> | null = null;
+
 // 背景图片base64
 const backgroundImageBase64 = ref<string | null>("");
 const addWebsite = reactive<FrequentWebsite>({
@@ -627,7 +627,6 @@ function saveSearchHistory(query: string) {
   addToLocalStorage<string[]>("searchHistory", searchHistory.value);
 }
 function selectHistoryItem(item: string) {
-  if (historyBlurTimer) clearTimeout(historyBlurTimer);
   inputText.value = item;
   showHistory.value = false;
   doSearch();
@@ -637,9 +636,7 @@ function deleteHistoryItem(index: number) {
   addToLocalStorage<string[]>("searchHistory", searchHistory.value);
 }
 function hideHistoryDelayed() {
-  historyBlurTimer = setTimeout(() => {
-    showHistory.value = false;
-  }, 200);
+  showHistory.value = false;
 }
 // 写入本地缓存
 function setCache() {
