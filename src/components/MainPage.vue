@@ -661,6 +661,8 @@ function getCache() {
     backgroundImageBase64.value = defaultImg;
     if (result) backgroundImageBase64.value = result;
   });
+  const webList = getFromLocalStorage("webList");
+  if (webList) customization.webList = JSON.parse(webList) as FrequentWebsite[];
   const mode = getFromLocalStorage("redirectMode");
   if (mode) customization.redirectMode = JSON.parse(mode) as RedirectMode;
   const colorScheme = getFromLocalStorage("colorScheme");
