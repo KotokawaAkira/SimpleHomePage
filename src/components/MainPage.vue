@@ -26,7 +26,7 @@
                   >
                     <button
                       class="logo"
-                      v-if="searchEngine.index === engine.index"
+                      v-if="customization.engine.index === engine.index"
                     >
                       <component :is="engine.logo_url" />
                     </button>
@@ -88,7 +88,7 @@
       <!-- 常用URL栏 -->
       <div class="container modify-scroll-bar">
         <draggable
-          v-model="webList"
+          v-model="customization.webList"
           item-key="webList1"
           class="grid-list"
           animation="300"
@@ -166,7 +166,7 @@
             name="mode-redirect"
             :id="`${item.value}/${item.modeName}`"
             :value="item.value"
-            v-model="redirectMode.value"
+            v-model="customization.redirectMode.value"
             @change="changeRedirectMode(item)"
           /><label :for="`${item.value}/${item.modeName}`">{{
             item.modeName
@@ -186,7 +186,7 @@
             name="mode-color-scheme"
             :id="`color-${item.value}`"
             :value="item.value"
-            v-model="colorSchemeMode.value"
+            v-model="customization.colorScheme.value"
             @change="changeColorScheme(item)"
           /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
         </div>
@@ -197,7 +197,9 @@
           <template #trigger>
             <div class="font-select">
               <span>{{
-                fontFamily === "system-ui" ? "系统默认" : fontFamily
+                customization.fontFamily === "system-ui"
+                  ? "系统默认"
+                  : customization.fontFamily
               }}</span>
               <span class="font-select-arrow">▾</span>
             </div>
@@ -208,7 +210,7 @@
           >
             <div
               class="font-dropdown-item"
-              :class="{ active: fontFamily === 'system-ui' }"
+              :class="{ active: customization.fontFamily === 'system-ui' }"
               @click="selectFont('system-ui')"
             >
               系统默认
@@ -217,7 +219,7 @@
               v-for="font in systemFonts"
               :key="font"
               class="font-dropdown-item"
-              :class="{ active: fontFamily === font }"
+              :class="{ active: customization.fontFamily === font }"
               :style="{ fontFamily: font }"
               @click="selectFont(font)"
             >
@@ -229,8 +231,8 @@
           class="font-preview"
           :style="{
             fontFamily:
-              fontFamily !== 'system-ui'
-                ? fontFamily + ', sans-serif'
+              customization.fontFamily !== 'system-ui'
+                ? customization.fontFamily + ', sans-serif'
                 : undefined,
           }"
           >Aa</span
@@ -243,10 +245,10 @@
           min="0"
           max="30"
           step="1"
-          v-model.number="blurValue"
+          v-model.number="customization.blurValue"
           @input="changeBlur"
         />
-        <span class="blur-value">{{ blurValue }}px</span>
+        <span class="blur-value">{{ customization.blurValue }}px</span>
       </div>
       <div class="page-redirect blur-setting">
         <div>背景透明:</div>
@@ -255,10 +257,10 @@
           min="0"
           max="1"
           step="0.05"
-          v-model.number="bgOpacity"
+          v-model.number="customization.bgOpacity"
           @input="changeBgOpacity"
         />
-        <span class="blur-value">{{ bgOpacity.toFixed(2) }}</span>
+        <span class="blur-value">{{ customization.bgOpacity.toFixed(2) }}</span>
       </div>
       <div class="config-import-export">
         <button class="btn-export" @click="exportConfig">导出配置</button>
@@ -389,6 +391,7 @@ import {
   onUnmounted,
   reactive,
   ref,
+  toRaw,
   watch,
 } from "vue";
 import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
@@ -402,7 +405,12 @@ import defaultImg from "../assets/1.png";
 import images from "../assets/images.svg";
 import refresh from "../assets/refresh.svg";
 import { type SearchEngine, EnginConfig } from "../config/searchConfig";
-import type { FrequentWebsite, MyDate, SelectedWebsite } from "../types/types";
+import type {
+  FrequentWebsite,
+  MyDate,
+  SelectedWebsite,
+  userCustomization,
+} from "../types/types";
 import {
   getFromLocalStorage,
   addToLocalStorage,
@@ -419,6 +427,8 @@ import type { RedirectMode } from "../config/redirectModeConfig";
 import RedirectModeConfig from "../config/redirectModeConfig";
 import type { ColorSchemeMode } from "../config/colorSchemeConfig";
 import ColorSchemeConfig from "../config/colorSchemeConfig";
+import { default_font } from "../config/fontConfig.ts";
+
 let appNode: HTMLDivElement | undefined;
 const nowDate = new Date();
 // 响应式时间数据
@@ -437,9 +447,16 @@ const showModal_edit = ref(false);
 const showModal_delete = ref(false);
 const showModal_import = ref(false);
 const deleteTargetIndex = ref(-1);
-// 当前选中搜索引擎
-const searchEngine = ref<SearchEngine>(EnginConfig[0]);
-// 响应式计算时间
+// 自定义设置（合并为一个 reactive 对象）
+const customization = reactive<userCustomization>({
+  webList: [],
+  engine: EnginConfig[0],
+  redirectMode: { value: 0, modeName: "直接跳转" },
+  colorScheme: { value: 0, modeName: "跟随系统" },
+  blurValue: 6,
+  bgOpacity: 0.5,
+  fontFamily: "system-ui",
+});
 const timeString = computed(
   () =>
     `${checkTimeLength(time.hours)}:${checkTimeLength(time.minutes)}:${checkTimeLength(time.seconds)}`,
@@ -463,19 +480,6 @@ const editWebsite = reactive<SelectedWebsite>({
   webName: "",
   iconUrl: "",
 });
-// 页面跳转模式
-const redirectMode = ref<RedirectMode>({ value: 0, modeName: "直接跳转" });
-// 颜色主题模式
-const colorSchemeMode = ref<ColorSchemeMode>({
-  value: 0,
-  modeName: "跟随系统",
-});
-// 高斯模糊数值(px)
-const blurValue = ref(6);
-// 背景不透明度(0-1)
-const bgOpacity = ref(0.5);
-// 字体设置
-const fontFamily = ref("system-ui");
 const systemFonts = ref<string[]>([]);
 // 导入配置
 const importJsonText = ref("");
@@ -502,19 +506,18 @@ const isEditLegal = computed(() => {
     editWebsite.webName.length > 0
   );
 });
-let webList = ref<FrequentWebsite[]>([]);
+// 读取主页添加的网站
+const browserWebList = getFromLocalStorage("webList");
+if (browserWebList) {
+  const list = JSON.parse(browserWebList) as FrequentWebsite[];
+  customization.webList = list;
+}
 const filteredHistory = computed(() => {
   if (!inputText.value.trim()) return searchHistory.value;
   return searchHistory.value.filter((item) =>
     item.toLowerCase().includes(inputText.value.toLowerCase()),
   );
 });
-// 读取主页添加的网站
-const browserWebList = getFromLocalStorage("webList");
-if (browserWebList) {
-  const list = JSON.parse(browserWebList) as FrequentWebsite[];
-  webList.value = list;
-}
 // 更新时间数据
 setInterval(() => {
   const newTime = new Date();
@@ -528,14 +531,14 @@ setInterval(() => {
 // 选项框弹窗
 const isOpen = ref(false);
 const selectOption = (engine: SearchEngine) => {
-  searchEngine.value = engine;
+  customization.engine = engine;
   isOpen.value = false;
 };
 // 字体下拉框
 const fontDropdownOpen = ref(false);
 const fontDropdownBox = ref<HTMLDivElement | null>(null);
 const selectFont = (font: string) => {
-  fontFamily.value = font;
+  customization.fontFamily = font;
   fontDropdownOpen.value = false;
   changeFont();
 };
@@ -558,9 +561,12 @@ watch(fontDropdownOpen, (val) => {
     });
   }
 });
-watch(searchEngine, () => {
-  setCache();
-});
+watch(
+  () => customization.engine,
+  () => {
+    setCache();
+  },
+);
 watch(
   backgroundImageBase64,
   (newUrl) => {
@@ -584,9 +590,9 @@ watch(showModal_edit, (newValue) => {
 });
 // 监听网页列表
 watch(
-  webList,
+  () => customization.webList,
   () => {
-    addToLocalStorage<FrequentWebsite[]>("webList", webList.value);
+    addToLocalStorage<FrequentWebsite[]>("webList", customization.webList);
   },
   { deep: true },
 );
@@ -596,7 +602,7 @@ watch(showModal, (newVal) => {
 });
 // 打开新页面
 function goWebsite(url: string) {
-  switch (redirectMode.value.value) {
+  switch (customization.redirectMode.value) {
     case 0:
       window.location.href = url;
       break;
@@ -609,7 +615,7 @@ function goWebsite(url: string) {
 function doSearch() {
   const query = inputText.value.trim();
   if (query) saveSearchHistory(query);
-  goWebsite(searchEngine.value.url + inputText.value);
+  goWebsite(customization.engine.url + inputText.value);
 }
 // 监听键盘enter
 function onEnterPress(e: KeyboardEvent) {
@@ -640,51 +646,43 @@ function hideHistoryDelayed() {
 }
 // 写入本地缓存
 function setCache() {
-  setEngine(searchEngine.value);
+  setEngine(customization.engine);
 }
 // 读取本地缓存
 function getCache() {
-  // 获取搜索引擎设置
   const searchEngineCache = getFromLocalStorage("engine");
   if (searchEngineCache)
-    searchEngine.value = JSON.parse(searchEngineCache) as SearchEngine;
+    customization.engine = JSON.parse(searchEngineCache) as SearchEngine;
   else {
-    searchEngine.value = EnginConfig[0];
+    customization.engine = EnginConfig[0];
     setCache();
   }
-  // 获取图片
   doGetImgBase64((result) => {
     backgroundImageBase64.value = defaultImg;
     if (result) backgroundImageBase64.value = result;
   });
-  // 获取页面跳转方式
   const mode = getFromLocalStorage("redirectMode");
-  if (mode) redirectMode.value = JSON.parse(mode) as RedirectMode;
-  // 获取颜色主题
+  if (mode) customization.redirectMode = JSON.parse(mode) as RedirectMode;
   const colorScheme = getFromLocalStorage("colorScheme");
   if (colorScheme)
-    colorSchemeMode.value = JSON.parse(colorScheme) as ColorSchemeMode;
+    customization.colorScheme = JSON.parse(colorScheme) as ColorSchemeMode;
   applyColorScheme();
-  // 获取高斯模糊数值
   const blur = getFromLocalStorage("blurValue");
-  if (blur !== null) blurValue.value = JSON.parse(blur) as number;
+  if (blur !== null) customization.blurValue = JSON.parse(blur) as number;
   applyBlur();
-  // 获取背景不透明度
   const opacity = getFromLocalStorage("bgOpacity");
-  if (opacity !== null) bgOpacity.value = JSON.parse(opacity) as number;
+  if (opacity !== null) customization.bgOpacity = JSON.parse(opacity) as number;
   applyBgOpacity();
-  // 获取搜索历史
   const history = getFromLocalStorage("searchHistory");
   if (history) searchHistory.value = JSON.parse(history) as string[];
-  // 获取字体设置
   const font = getFromLocalStorage("fontFamily");
   if (font) {
     const family = JSON.parse(font) as string;
     if (family !== "system-ui" && !isFontAvailable(family)) {
-      fontFamily.value = "system-ui";
+      customization.fontFamily = "system-ui";
       addToLocalStorage("fontFamily", "system-ui");
     } else {
-      fontFamily.value = family;
+      customization.fontFamily = family;
     }
   }
   applyFont();
@@ -704,12 +702,12 @@ function uploadBackground(e: Event) {
 
 // 添加到主页
 function addToHome(item: FrequentWebsite) {
-  webList.value.push({
+  customization.webList.push({
     webName: item.webName,
     url: item.url,
     iconUrl: item.iconUrl,
   });
-  addToLocalStorage<FrequentWebsite[]>("webList", webList.value);
+  addToLocalStorage<FrequentWebsite[]>("webList", customization.webList);
   showModal_add.value = false;
 }
 // 确认添加到主页
@@ -733,7 +731,7 @@ function openDeleteConfirm(index: number) {
   showModal_delete.value = true;
 }
 function deleteConfirm() {
-  webList.value.splice(deleteTargetIndex.value, 1);
+  customization.webList.splice(deleteTargetIndex.value, 1);
 }
 function closeModalDelete() {
   showModal_delete.value = false;
@@ -747,9 +745,9 @@ function openEdit(website: FrequentWebsite, index: number) {
 }
 // 确认修改
 function editConfirm() {
-  webList.value[editWebsite.index].url = editWebsite.url;
-  webList.value[editWebsite.index].iconUrl = editWebsite.iconUrl;
-  webList.value[editWebsite.index].webName = editWebsite.webName;
+  customization.webList[editWebsite.index].url = editWebsite.url;
+  customization.webList[editWebsite.index].iconUrl = editWebsite.iconUrl;
+  customization.webList[editWebsite.index].webName = editWebsite.webName;
 }
 // 恢复默认图片
 function restoreImg() {
@@ -758,13 +756,13 @@ function restoreImg() {
 }
 // 修改页面跳转模式
 function changeRedirectMode(mode: RedirectMode) {
-  redirectMode.value = mode;
+  customization.redirectMode = mode;
   addToLocalStorage<RedirectMode>("redirectMode", mode);
 }
 // 应用颜色主题
 function applyColorScheme() {
   const html = document.documentElement;
-  switch (colorSchemeMode.value.value) {
+  switch (customization.colorScheme.value) {
     case 1:
       html.setAttribute("data-theme", "light");
       break;
@@ -778,7 +776,7 @@ function applyColorScheme() {
 }
 // 修改颜色主题
 function changeColorScheme(mode: ColorSchemeMode) {
-  colorSchemeMode.value = mode;
+  customization.colorScheme = mode;
   addToLocalStorage<ColorSchemeMode>("colorScheme", mode);
   applyColorScheme();
 }
@@ -786,25 +784,23 @@ function changeColorScheme(mode: ColorSchemeMode) {
 function applyBlur() {
   document.documentElement.style.setProperty(
     "--val_blur",
-    `${blurValue.value}px`,
+    `${customization.blurValue}px`,
   );
 }
-// 修改高斯模糊
 function changeBlur() {
   applyBlur();
-  addToLocalStorage<number>("blurValue", blurValue.value);
+  addToLocalStorage<number>("blurValue", customization.blurValue);
 }
 // 应用背景不透明度
 function applyBgOpacity() {
   document.documentElement.style.setProperty(
     "--bg_mainbox_alpha",
-    `${bgOpacity.value}`,
+    `${customization.bgOpacity}`,
   );
 }
-// 修改背景不透明度
 function changeBgOpacity() {
   applyBgOpacity();
-  addToLocalStorage<number>("bgOpacity", bgOpacity.value);
+  addToLocalStorage<number>("bgOpacity", customization.bgOpacity);
 }
 // 加载系统字体列表
 function isFontAvailable(family: string): boolean {
@@ -827,33 +823,7 @@ async function loadSystemFonts() {
     systemFonts.value = [];
   }
   if (systemFonts.value.length === 0) {
-    systemFonts.value = [
-      "Arial",
-      "Helvetica",
-      "Times New Roman",
-      "Georgia",
-      "Verdana",
-      "Courier New",
-      "Microsoft YaHei",
-      "SimSun",
-      "SimHei",
-      "PingFang SC",
-      "Hiragino Sans GB",
-      "Noto Sans SC",
-      "Noto Serif SC",
-      "Source Han Sans SC",
-      "STSong",
-      "STKaiti",
-      "KaiTi",
-      "FangSong",
-      "Comic Sans MS",
-      "Impact",
-      "Trebuchet MS",
-      "Tahoma",
-      "Palatino Linotype",
-      "Lucida Console",
-      "Segoe UI",
-    ].filter((f) => {
+    systemFonts.value = default_font.filter((f) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return false;
@@ -871,35 +841,19 @@ async function loadSystemFonts() {
 // 应用字体
 function applyFont() {
   const family =
-    fontFamily.value === "system-ui"
+    customization.fontFamily === "system-ui"
       ? "system-ui, 'Segoe UI', Roboto, sans-serif"
-      : fontFamily.value + ", sans-serif";
+      : customization.fontFamily + ", sans-serif";
   document.documentElement.style.setProperty("--sans", family);
   document.body.style.fontFamily = family;
 }
-// 修改字体
 function changeFont() {
   applyFont();
-  addToLocalStorage<string>("fontFamily", fontFamily.value);
+  addToLocalStorage<string>("fontFamily", customization.fontFamily);
 }
 // 导出配置
 function exportConfig() {
-  const storageKeys = [
-    "webList",
-    "engine",
-    "redirectMode",
-    "colorScheme",
-    "blurValue",
-    "bgOpacity",
-    "fontFamily",
-  ];
-  const configData: Record<string, unknown> = {};
-  for (const key of storageKeys) {
-    const raw = getFromLocalStorage(key);
-    if (raw !== null) {
-      configData[key] = JSON.parse(raw);
-    }
-  }
+  const configData = toRaw(customization);
   const exportObj = {
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -952,7 +906,8 @@ function importConfirm() {
     for (const [key, value] of Object.entries(data)) {
       addToLocalStorage(key, value);
     }
-    window.location.reload();
+    // window.location.reload();
+    getCache();
   } catch {
     importErrorMessage.value = "JSON 解析失败，请检查格式";
   }
