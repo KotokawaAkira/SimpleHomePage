@@ -1,5 +1,5 @@
 import { computed, reactive } from "vue";
-import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
+import { checkTimeLength } from "../../tools/timeTools";
 import type { MyDate } from "../types/types";
 
 export function useTime() {
@@ -37,5 +37,5 @@ export function useTime() {
     clearInterval(timer);
   }
 
-  return { time, timeString, startClock, stopClock, dayToChineseDay };
+  return { time, timeString, startClock, stopClock };
 }

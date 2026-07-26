@@ -272,7 +272,7 @@ import { useImportExport } from "../composables/useImportExport";
 
 let appNode: HTMLDivElement | undefined;
 
-const { time, timeString, startClock } = useTime();
+const { time, timeString, startClock,stopClock } = useTime();
 
 const {
   inputText,
@@ -392,7 +392,9 @@ onMounted(() => {
     appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
 });
 
-onUnmounted(() => {});
+onUnmounted(() => {
+  stopClock();
+});
 
 watch(
   () => customization.engine,

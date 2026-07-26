@@ -127,7 +127,7 @@ const confirm = () => {
   cursor: pointer;
   border-radius: 6px;
   border: 1px solid var(--text-h);
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
   &:not(:disabled):active {
     transform: scale(0.95);
   }
