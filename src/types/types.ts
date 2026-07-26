@@ -5,7 +5,7 @@ type MyDate = {
   date: number;
   month: number;
   hours: number;
-  minites: number;
+  minutes: number;
   seconds: number;
 };
 // 常用页面类型
@@ -46,6 +46,15 @@ type ColorSchemeMode = {
   value: number;
   modeName: string;
 };
+type userCustomization = {
+  webList: FrequentWebsite[];
+  engine: SearchEngine;
+  redirectMode: RedirectMode;
+  colorScheme: ColorSchemeMode;
+  blurValue: number;
+  bgOpacity: number;
+  fontFamily: string;
+};
 export type {
   MyDate,
   FrequentWebsite,
@@ -54,4 +63,5 @@ export type {
   SearchEngine,
   RedirectMode,
   ColorSchemeMode,
+  userCustomization,
 };
