@@ -3,7 +3,6 @@
     <nav class="nav"></nav>
     <main class="main">
       <div class="main-box box_bg">
-        <!-- 显示时间 -->
         <section class="show-time">
           <div class="time">{{ timeString }}</div>
           <div class="date">
@@ -11,10 +10,8 @@
             <div>{{ dayToChineseDay(time.day) }}</div>
           </div>
         </section>
-        <!-- 搜索框 -->
         <section class="search">
           <div class="search-box">
-            <!-- 选择搜索引擎 -->
             <DropDown v-model="isOpen" class="select">
               <template #trigger>
                 <div class="selection-box" title="更换搜索引擎">
@@ -38,7 +35,7 @@
                   class="option-item"
                   v-for="engine in EnginConfig"
                   :key="'B' + engine.index"
-                  @click="selectOption(engine)"
+                  @click="selectOption(engine, customization)"
                 >
                   <component :is="engine.logo_url" />
                   <span>{{ engine.engineName }}</span>
@@ -48,17 +45,16 @@
             <input
               type="text"
               v-model="inputText"
-              v-on:keydown="onEnterPress"
+              @keydown="onEnterPress($event, customization)"
               @focus="showHistory = true"
               @blur="hideHistoryDelayed"
             />
-            <div class="do-search" @click="doSearch">
+            <div class="do-search" @click="doSearch(customization)">
               <button class="logo">
                 <search_logo />
               </button>
             </div>
           </div>
-          <!-- 搜索历史 -->
           <transition name="fade">
             <div
               v-show="showHistory && filteredHistory.length > 0"
@@ -68,7 +64,7 @@
                 class="history-item"
                 v-for="(item, index) in filteredHistory"
                 :key="index"
-                @mousedown.prevent="selectHistoryItem(item)"
+                @mousedown.prevent="selectHistoryItem(item, customization)"
               >
                 <div class="history-text-container">
                   <span class="history-text">{{ item }}</span>
@@ -85,7 +81,6 @@
           </transition>
         </section>
       </div>
-      <!-- 常用URL栏 -->
       <div class="container modify-scroll-bar">
         <draggable
           v-model="customization.webList"
@@ -101,8 +96,14 @@
                 :index="index"
                 class="box_bg"
                 @click="goWebsite"
-                @delete="openDeleteConfirm"
-                @edit="openEdit"
+                @delete="
+                  openDeleteConfirm(index);
+                  showModal_delete = true;
+                "
+                @edit="
+                  openEdit($event, index);
+                  showModal_edit = true;
+                "
               />
             </a>
           </template>
@@ -110,7 +111,6 @@
       </div>
     </main>
     <footer class="foot">
-      <!-- 右下角图标 -->
       <div class="setting-list">
         <button
           class="add-url box_bg"
@@ -119,156 +119,38 @@
         >
           <add />
         </button>
-        <button class="settings box_bg" title="设置" @click="showModal = true">
+        <button
+          class="settings box_bg"
+          title="设置"
+          @click="showModal_setting = true"
+        >
           <settings />
         </button>
       </div>
     </footer>
   </section>
-  <!-- 设置 弹窗 -->
+
+  <!-- 设置弹窗 -->
   <transition name="fade">
-    <Modal :show="showModal" @close="closeModal" width="35%">
-      <div class="setBackgroundImg">
-        <h1>设置背景图片</h1>
-        <div class="bg-preview">
-          <img
-            v-if="backgroundImageBase64"
-            :src="backgroundImageBase64"
-            alt="当前背景图片"
-            class="bg-preview-img"
-          />
-          <div class="bg-preview-mask">
-            <label class="mask-action" title="更改背景">
-              <!-- <span>更改背景</span> -->
-              <images />
-              <input
-                type="file"
-                accept="image/png,image/jpg,image/jpeg"
-                @change="uploadBackground"
-              />
-            </label>
-            <div class="mask-divider"></div>
-            <button class="mask-action" title="恢复默认" @click="restoreImg">
-              <refresh />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="page-redirect">
-        <div>页面跳转:</div>
-        <div
-          v-for="item in RedirectModeConfig"
-          class="page-redirect-option"
-          @click="changeRedirectMode(item)"
-        >
-          <input
-            type="radio"
-            name="mode-redirect"
-            :id="`${item.value}/${item.modeName}`"
-            :value="item.value"
-            v-model="customization.redirectMode.value"
-            @change="changeRedirectMode(item)"
-          /><label :for="`${item.value}/${item.modeName}`">{{
-            item.modeName
-          }}</label>
-        </div>
-      </div>
-      <div class="page-redirect">
-        <div>颜色主题:</div>
-        <div
-          v-for="item in ColorSchemeConfig"
-          :key="item.value"
-          class="page-redirect-option"
-          @click="changeColorScheme(item)"
-        >
-          <input
-            type="radio"
-            name="mode-color-scheme"
-            :id="`color-${item.value}`"
-            :value="item.value"
-            v-model="customization.colorScheme.value"
-            @change="changeColorScheme(item)"
-          /><label :for="`color-${item.value}`">{{ item.modeName }}</label>
-        </div>
-      </div>
-      <div class="page-redirect font-setting">
-        <div>页面字体:</div>
-        <DropDown v-model="fontDropdownOpen" style="flex: 1">
-          <template #trigger>
-            <div class="font-select">
-              <span>{{
-                customization.fontFamily === "system-ui"
-                  ? "系统默认"
-                  : customization.fontFamily
-              }}</span>
-              <span class="font-select-arrow">▾</span>
-            </div>
-          </template>
-          <div
-            ref="fontDropdownBox"
-            class="font-dropdown-box modify-scroll-bar"
-          >
-            <div
-              class="font-dropdown-item"
-              :class="{ active: customization.fontFamily === 'system-ui' }"
-              @click="selectFont('system-ui')"
-            >
-              系统默认
-            </div>
-            <div
-              v-for="font in systemFonts"
-              :key="font"
-              class="font-dropdown-item"
-              :class="{ active: customization.fontFamily === font }"
-              :style="{ fontFamily: font }"
-              @click="selectFont(font)"
-            >
-              {{ font }}
-            </div>
-          </div>
-        </DropDown>
-        <span
-          class="font-preview"
-          :style="{
-            fontFamily:
-              customization.fontFamily !== 'system-ui'
-                ? customization.fontFamily + ', sans-serif'
-                : undefined,
-          }"
-          >Aa</span
-        >
-      </div>
-      <div class="page-redirect blur-setting">
-        <div>高斯模糊:</div>
-        <input
-          type="range"
-          min="0"
-          max="30"
-          step="1"
-          v-model.number="customization.blurValue"
-          @input="changeBlur"
-        />
-        <span class="blur-value">{{ customization.blurValue }}px</span>
-      </div>
-      <div class="page-redirect blur-setting">
-        <div>背景透明:</div>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-          v-model.number="customization.bgOpacity"
-          @input="changeBgOpacity"
-        />
-        <span class="blur-value">{{ customization.bgOpacity.toFixed(2) }}</span>
-      </div>
-      <div class="config-import-export">
-        <button class="btn-export" @click="exportConfig">导出配置</button>
-        <button class="btn-import" @click="openImportModal">导入配置</button>
-      </div>
+    <Modal :show="showModal_setting" @close="closeModal_setting" width="35%">
+      <SettingsModal
+        :customization="customization"
+        :backgroundImageBase64="backgroundImageBase64"
+        :systemFonts="systemFonts"
+        @uploadBackground="uploadBackground"
+        @restoreImg="restoreImg"
+        @changeRedirectMode="(mode) => changeRedirectMode(mode, customization)"
+        @changeColorScheme="(mode) => changeColorScheme(mode, customization)"
+        @changeBlurValue="onChangeBlur"
+        @changeBgOpacity="onChangeBgOpacity"
+        @selectFont="(font) => selectFont(font, customization)"
+        @exportConfig="exportConfig(customization)"
+        @openImport="openImportModal"
+      />
     </Modal>
   </transition>
-  <!-- 添加常用URL 弹窗 -->
+
+  <!-- 添加常用URL弹窗 -->
   <transition name="fade">
     <Modal
       :show="showModal_add"
@@ -277,27 +159,19 @@
       width="30%"
       minHeight="300px"
       minWidth="300px"
-      :doConfirm="addConfirm"
-      @close="closeModalAdd"
+      :doConfirm="
+        () => {
+          addConfirm(customization);
+          showModal_add = false;
+        }
+      "
+      @close="showModal_add = false"
     >
-      <div class="list-container">
-        <h1>添加常用URL</h1>
-        <div class="list-item">
-          <h2>名称 *</h2>
-          <input type="text" v-model="addWebsite.webName" />
-        </div>
-        <div class="list-item">
-          <h2>URL *</h2>
-          <input type="text" v-model="addWebsite.url" />
-        </div>
-        <div class="list-item">
-          <h2>图标URL</h2>
-          <input type="text" v-model="addWebsite.iconUrl" />
-        </div>
-      </div>
+      <WebsiteFormModal v-model="addWebsite" title="添加常用URL" />
     </Modal>
   </transition>
-  <!-- 编辑 弹窗 -->
+
+  <!-- 编辑弹窗 -->
   <transition name="fade">
     <Modal
       :show="showModal_edit"
@@ -306,29 +180,19 @@
       width="30%"
       minHeight="300px"
       minWidth="300px"
-      :doConfirm="editConfirm"
-      @close="closeModalEdit"
+      :doConfirm="
+        () => {
+          editConfirm(customization);
+          showModal_edit = false;
+        }
+      "
+      @close="showModal_edit = false"
     >
-      <div class="edit-container">
-        <div class="list-container">
-          <h1>编辑</h1>
-          <div class="list-item">
-            <h2>名称 *</h2>
-            <input type="text" v-model="editWebsite.webName" />
-          </div>
-          <div class="list-item">
-            <h2>URL *</h2>
-            <input type="text" v-model="editWebsite.url" />
-          </div>
-          <div class="list-item">
-            <h2>图标URL</h2>
-            <input type="text" v-model="editWebsite.iconUrl" />
-          </div>
-        </div>
-      </div>
+      <WebsiteFormModal v-model="editWebsite" title="编辑" />
     </Modal>
   </transition>
-  <!-- 删除确认 弹窗 -->
+
+  <!-- 删除确认弹窗 -->
   <transition name="fade">
     <Modal
       :show="showModal_delete"
@@ -336,8 +200,13 @@
       width="25%"
       minWidth="280px"
       minHeight="160px"
-      :doConfirm="deleteConfirm"
-      @close="closeModalDelete"
+      :doConfirm="
+        () => {
+          deleteConfirm(customization);
+          showModal_delete = false;
+        }
+      "
+      @close="showModal_delete = false"
     >
       <div class="delete-container delete-text">
         <h1>确认删除</h1>
@@ -345,7 +214,8 @@
       </div>
     </Modal>
   </transition>
-  <!-- 导入配置 弹窗 -->
+
+  <!-- 导入配置弹窗 -->
   <transition name="fade">
     <Modal
       :show="showModal_import"
@@ -354,100 +224,117 @@
       width="35%"
       minHeight="320px"
       minWidth="300px"
-      :doConfirm="importConfirm"
+      :doConfirm="
+        () => {
+          importConfirm(initAll);
+          showModal_import = false;
+        }
+      "
       disable
-      @close="closeImportModal"
+      @close="showModal_import = false"
     >
-      <div class="import-container">
-        <h1>导入配置</h1>
-        <p class="import-tip">请粘贴 JSON 配置内容，或选择配置文件导入。</p>
-        <textarea
-          v-model="importJsonText"
-          class="import-textarea modify-scroll-bar"
-          placeholder="粘贴 JSON 配置内容..."
-          spellcheck="false"
-        ></textarea>
-        <div class="import-file-row">
-          <label class="btn-import-file">
-            选择文件
-            <input type="file" accept=".json" @change="onImportFileSelected" />
-          </label>
-          <span v-if="importFileName" class="import-file-name">{{
-            importFileName
-          }}</span>
-        </div>
-        <p v-if="importErrorMessage" class="import-error">
-          {{ importErrorMessage }}
-        </p>
-      </div>
+      <ImportModal
+        :importJsonText="importJsonText"
+        :importFileName="importFileName"
+        :importErrorMessage="importErrorMessage"
+        @update:importJsonText="importJsonText = $event"
+        @onImportFile="onImportFileSelected"
+      />
     </Modal>
   </transition>
 </template>
+
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onMounted,
-  onUnmounted,
-  reactive,
-  ref,
-  toRaw,
-  watch,
-} from "vue";
-import { checkTimeLength, dayToChineseDay } from "../../tools/timeTools";
+import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { dayToChineseDay } from "../../tools/timeTools";
 
 import draggable from "vuedraggable";
 import search_logo from "../assets/magnifier-search.svg";
 import settings from "../assets/settings.svg";
 import add from "../assets/add.svg";
 
-import defaultImg from "../assets/1.png";
-import images from "../assets/images.svg";
-import refresh from "../assets/refresh.svg";
-import { type SearchEngine, EnginConfig } from "../config/searchConfig";
-import type {
-  FrequentWebsite,
-  MyDate,
-  SelectedWebsite,
-  userCustomization,
-} from "../types/types";
-import {
-  getFromLocalStorage,
-  addToLocalStorage,
-  doGetImgBase64,
-  doSaveImgBase64,
-  setEngine,
-  removeImgStorage,
-} from "../../tools/useCache";
+import { EnginConfig } from "../config/searchConfig";
+import type { userCustomization } from "../types/types";
+import { addToLocalStorage, setEngine } from "../../tools/useCache";
 import Modal from "./Modal.vue";
 import CardView from "./CardView.vue";
 import DropDown from "./DropDown.vue";
-import { readImgToBase64 } from "../../tools/useFile";
-import type { RedirectMode } from "../config/redirectModeConfig";
-import RedirectModeConfig from "../config/redirectModeConfig";
-import type { ColorSchemeMode } from "../config/colorSchemeConfig";
-import ColorSchemeConfig from "../config/colorSchemeConfig";
-import { default_font } from "../config/fontConfig.ts";
+import SettingsModal from "./SettingsModal.vue";
+import WebsiteFormModal from "./WebsiteFormModal.vue";
+import ImportModal from "./ImportModal.vue";
+
+import { useTime } from "../composables/useTime";
+import { useSearch } from "../composables/useSearch";
+import { useBackground } from "../composables/useBackground";
+import { useSettings } from "../composables/useSettings";
+import { useWebList } from "../composables/useWebList";
+import { useImportExport } from "../composables/useImportExport";
 
 let appNode: HTMLDivElement | undefined;
-const nowDate = new Date();
-// 响应式时间数据
-const time = reactive<MyDate>({
-  year: nowDate.getFullYear(),
-  day: nowDate.getDay(),
-  date: nowDate.getDate(),
-  month: nowDate.getMonth(),
-  hours: nowDate.getHours(),
-  minutes: nowDate.getMinutes(),
-  seconds: nowDate.getSeconds(),
-});
-const showModal = ref(false);
+
+const { time, timeString, startClock } = useTime();
+
+const {
+  inputText,
+  showHistory,
+  isOpen,
+  filteredHistory,
+  loadSearchHistory,
+  loadSearchEngine,
+  selectOption,
+  doSearch,
+  onEnterPress,
+  selectHistoryItem,
+  deleteHistoryItem,
+  hideHistoryDelayed,
+} = useSearch();
+
+const { backgroundImageBase64, loadBackground, uploadBackground, restoreImg } =
+  useBackground();
+
+const {
+  systemFonts,
+  loadSettings,
+  selectFont,
+  changeRedirectMode,
+  changeColorScheme,
+  changeBlur,
+  changeBgOpacity,
+  loadSystemFonts,
+} = useSettings();
+
+const {
+  addWebsite,
+  editWebsite,
+  isAddLegal,
+  isEditLegal,
+  loadWebList,
+  addConfirm,
+  editConfirm,
+  openEdit,
+  openDeleteConfirm,
+  deleteConfirm,
+  resetAddWebsite,
+  resetEditWebsite,
+} = useWebList();
+
+const {
+  importJsonText,
+  importFileName,
+  importErrorMessage,
+  importJsonValid,
+  exportConfig,
+  resetImport,
+  onImportFileSelected,
+  importConfirm,
+} = useImportExport();
+
+const showModal_setting = ref(false);
 const showModal_add = ref(false);
 const showModal_edit = ref(false);
 const showModal_delete = ref(false);
 const showModal_import = ref(false);
-const deleteTargetIndex = ref(-1);
-// 自定义设置（合并为一个 reactive 对象）
+
 const customization = reactive<userCustomization>({
   webList: [],
   engine: EnginConfig[0],
@@ -457,150 +344,25 @@ const customization = reactive<userCustomization>({
   bgOpacity: 0.5,
   fontFamily: "system-ui",
 });
-const timeString = computed(
-  () =>
-    `${checkTimeLength(time.hours)}:${checkTimeLength(time.minutes)}:${checkTimeLength(time.seconds)}`,
-);
-// 响应输入数据
-const inputText = ref("");
-const searchHistory = ref<string[]>([]);
-const showHistory = ref(false);
-const historyMaxCount = 10;
 
-// 背景图片base64
-const backgroundImageBase64 = ref<string | null>("");
-const addWebsite = reactive<FrequentWebsite>({
-  url: "",
-  webName: "",
-  iconUrl: "",
-});
-const editWebsite = reactive<SelectedWebsite>({
-  index: -1,
-  url: "",
-  webName: "",
-  iconUrl: "",
-});
-const systemFonts = ref<string[]>([]);
-// 导入配置
-const importJsonText = ref("");
-const importFileName = ref("");
-const importErrorMessage = ref("");
-const importJsonValid = computed(
-  () =>
-    importJsonText.value.trim().length > 0 || importFileName.value.length > 0,
-);
-// 判断是否合法输入
-const isAddLegal = computed(() => {
-  return (
-    addWebsite.url !== undefined &&
-    addWebsite.webName !== undefined &&
-    addWebsite.url.length > 0 &&
-    addWebsite.webName.length > 0
-  );
-});
-const isEditLegal = computed(() => {
-  return (
-    editWebsite.url !== undefined &&
-    editWebsite.webName !== undefined &&
-    editWebsite.url.length > 0 &&
-    editWebsite.webName.length > 0
-  );
-});
-// 读取主页添加的网站
-const browserWebList = getFromLocalStorage("webList");
-if (browserWebList) {
-  const list = JSON.parse(browserWebList) as FrequentWebsite[];
-  customization.webList = list;
+function initAll() {
+  loadSearchHistory();
+  loadSearchEngine(customization);
+  loadBackground();
+  loadWebList(customization);
+  loadSettings(customization);
 }
-const filteredHistory = computed(() => {
-  if (!inputText.value.trim()) return searchHistory.value;
-  return searchHistory.value.filter((item) =>
-    item.toLowerCase().includes(inputText.value.toLowerCase()),
-  );
-});
-// 更新时间数据
-setInterval(() => {
-  const newTime = new Date();
-  time.year = newTime.getFullYear();
-  time.day = newTime.getDay();
-  time.date = newTime.getDate();
-  time.hours = newTime.getHours();
-  time.minutes = newTime.getMinutes();
-  time.seconds = newTime.getSeconds();
-}, 1000);
-// 选项框弹窗
-const isOpen = ref(false);
-const selectOption = (engine: SearchEngine) => {
-  customization.engine = engine;
-  isOpen.value = false;
-};
-// 字体下拉框
-const fontDropdownOpen = ref(false);
-const fontDropdownBox = ref<HTMLDivElement | null>(null);
-const selectFont = (font: string) => {
-  customization.fontFamily = font;
-  fontDropdownOpen.value = false;
-  changeFont();
-};
 
-// 初始化
-getCache();
+function onChangeBlur(value: number) {
+  customization.blurValue = value;
+  changeBlur(customization);
+}
 
-onMounted(() => {
-  // 设置背景
-  appNode = document.querySelector("#app") as HTMLDivElement;
-  if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
-    appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
-});
-onUnmounted(() => {});
-watch(fontDropdownOpen, (val) => {
-  if (val) {
-    nextTick(() => {
-      const active = fontDropdownBox.value?.querySelector(".active");
-      active?.scrollIntoView({ block: "nearest" });
-    });
-  }
-});
-watch(
-  () => customization.engine,
-  () => {
-    setCache();
-  },
-);
-watch(
-  backgroundImageBase64,
-  (newUrl) => {
-    if (appNode) appNode.style.backgroundImage = `url(${newUrl})`;
-  },
-  { immediate: true },
-);
-// 监听弹窗是否弹出
-watch(showModal_add, () => {
-  addWebsite.url = "";
-  addWebsite.iconUrl = "";
-  addWebsite.webName = "";
-});
-watch(showModal_edit, (newValue) => {
-  if (!newValue) {
-    editWebsite.index = -1;
-    editWebsite.url = "";
-    editWebsite.iconUrl = "";
-    editWebsite.webName = "";
-  }
-});
-// 监听网页列表
-watch(
-  () => customization.webList,
-  () => {
-    addToLocalStorage<FrequentWebsite[]>("webList", customization.webList);
-  },
-  { deep: true },
-);
-// 打开设置弹窗时加载系统字体
-watch(showModal, (newVal) => {
-  if (newVal) loadSystemFonts();
-});
-// 打开新页面
+function onChangeBgOpacity(value: number) {
+  customization.bgOpacity = value;
+  changeBgOpacity(customization);
+}
+
 function goWebsite(url: string) {
   switch (customization.redirectMode.value) {
     case 0:
@@ -611,310 +373,63 @@ function goWebsite(url: string) {
       break;
   }
 }
-// 搜索逻辑
-function doSearch() {
-  const query = inputText.value.trim();
-  if (query) saveSearchHistory(query);
-  goWebsite(customization.engine.url + inputText.value);
-}
-// 监听键盘enter
-function onEnterPress(e: KeyboardEvent) {
-  if (e.key === "Enter") {
-    doSearch();
-    e.preventDefault();
-  }
-}
-function saveSearchHistory(query: string) {
-  const trimmed = query.trim();
-  if (!trimmed) return;
-  const filtered = searchHistory.value.filter((item) => item !== trimmed);
-  filtered.unshift(trimmed);
-  searchHistory.value = filtered.slice(0, historyMaxCount);
-  addToLocalStorage<string[]>("searchHistory", searchHistory.value);
-}
-function selectHistoryItem(item: string) {
-  inputText.value = item;
-  showHistory.value = false;
-  doSearch();
-}
-function deleteHistoryItem(index: number) {
-  searchHistory.value.splice(index, 1);
-  addToLocalStorage<string[]>("searchHistory", searchHistory.value);
-}
-function hideHistoryDelayed() {
-  showHistory.value = false;
-}
-// 写入本地缓存
-function setCache() {
-  setEngine(customization.engine);
-}
-// 读取本地缓存
-function getCache() {
-  const searchEngineCache = getFromLocalStorage("engine");
-  if (searchEngineCache)
-    customization.engine = JSON.parse(searchEngineCache) as SearchEngine;
-  else {
-    customization.engine = EnginConfig[0];
-    setCache();
-  }
-  doGetImgBase64((result) => {
-    backgroundImageBase64.value = defaultImg;
-    if (result) backgroundImageBase64.value = result;
-  });
-  const webList = getFromLocalStorage("webList");
-  if (webList) customization.webList = JSON.parse(webList) as FrequentWebsite[];
-  const mode = getFromLocalStorage("redirectMode");
-  if (mode) customization.redirectMode = JSON.parse(mode) as RedirectMode;
-  const colorScheme = getFromLocalStorage("colorScheme");
-  if (colorScheme)
-    customization.colorScheme = JSON.parse(colorScheme) as ColorSchemeMode;
-  applyColorScheme();
-  const blur = getFromLocalStorage("blurValue");
-  if (blur !== null) customization.blurValue = JSON.parse(blur) as number;
-  applyBlur();
-  const opacity = getFromLocalStorage("bgOpacity");
-  if (opacity !== null) customization.bgOpacity = JSON.parse(opacity) as number;
-  applyBgOpacity();
-  const history = getFromLocalStorage("searchHistory");
-  if (history) searchHistory.value = JSON.parse(history) as string[];
-  const font = getFromLocalStorage("fontFamily");
-  if (font) {
-    const family = JSON.parse(font) as string;
-    if (family !== "system-ui" && !isFontAvailable(family)) {
-      customization.fontFamily = "system-ui";
-      addToLocalStorage("fontFamily", "system-ui");
-    } else {
-      customization.fontFamily = family;
-    }
-  }
-  applyFont();
-}
-// 选择图片
-function uploadBackground(e: Event) {
-  const fileElement = e.target as HTMLInputElement;
-  const file = fileElement.files?.[0];
-  if (!file) return;
-  readImgToBase64(file, (result) => {
-    // 写入浏览器存储
-    doSaveImgBase64(result);
-    // 设置图片
-    backgroundImageBase64.value = result;
-  });
+
+function closeModal_setting() {
+  showModal_setting.value = false;
 }
 
-// 添加到主页
-function addToHome(item: FrequentWebsite) {
-  customization.webList.push({
-    webName: item.webName,
-    url: item.url,
-    iconUrl: item.iconUrl,
-  });
-  addToLocalStorage<FrequentWebsite[]>("webList", customization.webList);
-  showModal_add.value = false;
-}
-// 确认添加到主页
-function addConfirm() {
-  addToHome(addWebsite);
-}
-// 关闭弹窗
-function closeModal() {
-  showModal.value = false;
-  fontDropdownOpen.value = false;
-}
-function closeModalAdd() {
-  showModal_add.value = false;
-}
-function closeModalEdit() {
-  showModal_edit.value = false;
-}
-// 删除确认
-function openDeleteConfirm(index: number) {
-  deleteTargetIndex.value = index;
-  showModal_delete.value = true;
-}
-function deleteConfirm() {
-  customization.webList.splice(deleteTargetIndex.value, 1);
-}
-function closeModalDelete() {
-  showModal_delete.value = false;
-}
-function openEdit(website: FrequentWebsite, index: number) {
-  showModal_edit.value = true;
-  editWebsite.index = index;
-  editWebsite.iconUrl = website.iconUrl;
-  editWebsite.url = website.url;
-  editWebsite.webName = website.webName;
-}
-// 确认修改
-function editConfirm() {
-  customization.webList[editWebsite.index].url = editWebsite.url;
-  customization.webList[editWebsite.index].iconUrl = editWebsite.iconUrl;
-  customization.webList[editWebsite.index].webName = editWebsite.webName;
-}
-// 恢复默认图片
-function restoreImg() {
-  removeImgStorage();
-  backgroundImageBase64.value = defaultImg;
-}
-// 修改页面跳转模式
-function changeRedirectMode(mode: RedirectMode) {
-  customization.redirectMode = mode;
-  addToLocalStorage<RedirectMode>("redirectMode", mode);
-}
-// 应用颜色主题
-function applyColorScheme() {
-  const html = document.documentElement;
-  switch (customization.colorScheme.value) {
-    case 1:
-      html.setAttribute("data-theme", "light");
-      break;
-    case 2:
-      html.setAttribute("data-theme", "dark");
-      break;
-    default:
-      html.removeAttribute("data-theme");
-      break;
-  }
-}
-// 修改颜色主题
-function changeColorScheme(mode: ColorSchemeMode) {
-  customization.colorScheme = mode;
-  addToLocalStorage<ColorSchemeMode>("colorScheme", mode);
-  applyColorScheme();
-}
-// 应用高斯模糊
-function applyBlur() {
-  document.documentElement.style.setProperty(
-    "--val_blur",
-    `${customization.blurValue}px`,
-  );
-}
-function changeBlur() {
-  applyBlur();
-  addToLocalStorage<number>("blurValue", customization.blurValue);
-}
-// 应用背景不透明度
-function applyBgOpacity() {
-  document.documentElement.style.setProperty(
-    "--bg_mainbox_alpha",
-    `${customization.bgOpacity}`,
-  );
-}
-function changeBgOpacity() {
-  applyBgOpacity();
-  addToLocalStorage<number>("bgOpacity", customization.bgOpacity);
-}
-// 加载系统字体列表
-function isFontAvailable(family: string): boolean {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return false;
-  ctx.font = "72px '" + family + "'";
-  return ctx.font.includes(family);
-}
-async function loadSystemFonts() {
-  try {
-    if ("queryLocalFonts" in window) {
-      const fonts = await (window as any).queryLocalFonts();
-      const families = [
-        ...new Set<string>(fonts.map((f: { family: string }) => f.family)),
-      ].sort((a, b) => a.localeCompare(b));
-      systemFonts.value = families;
-    }
-  } catch {
-    systemFonts.value = [];
-  }
-  if (systemFonts.value.length === 0) {
-    systemFonts.value = default_font.filter((f) => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return false;
-      ctx.font = "72px '" + f + "'";
-      return ctx.font.includes(f);
-    });
-  }
-  if (fontDropdownOpen.value) {
-    nextTick(() => {
-      const active = fontDropdownBox.value?.querySelector(".active");
-      active?.scrollIntoView({ block: "nearest" });
-    });
-  }
-}
-// 应用字体
-function applyFont() {
-  const family =
-    customization.fontFamily === "system-ui"
-      ? "system-ui, 'Segoe UI', Roboto, sans-serif"
-      : customization.fontFamily + ", sans-serif";
-  document.documentElement.style.setProperty("--sans", family);
-  document.body.style.fontFamily = family;
-}
-function changeFont() {
-  applyFont();
-  addToLocalStorage<string>("fontFamily", customization.fontFamily);
-}
-// 导出配置
-function exportConfig() {
-  const configData = toRaw(customization);
-  const exportObj = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    data: configData,
-  };
-  const blob = new Blob([JSON.stringify(exportObj, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `SimpleHomePage_config_${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
 function openImportModal() {
-  importJsonText.value = "";
-  importFileName.value = "";
-  importErrorMessage.value = "";
+  resetImport();
   showModal_import.value = true;
 }
-function closeImportModal() {
-  showModal_import.value = false;
-}
-function onImportFileSelected(e: Event) {
-  const fileElement = e.target as HTMLInputElement;
-  const file = fileElement.files?.[0];
-  if (!file) return;
-  importFileName.value = file.name;
-  importErrorMessage.value = "";
-  const reader = new FileReader();
-  reader.onload = () => {
-    importJsonText.value = reader.result as string;
-  };
-  reader.onerror = () => {
-    importErrorMessage.value = "文件读取失败";
-  };
-  reader.readAsText(file);
-}
-function importConfirm() {
-  try {
-    const parsed = JSON.parse(importJsonText.value);
-    const data = parsed.data || parsed;
-    if (!data || typeof data !== "object") {
-      importErrorMessage.value = "无效的配置数据格式";
-      return;
-    }
-    for (const [key, value] of Object.entries(data)) {
-      addToLocalStorage(key, value);
-    }
-    // window.location.reload();
-    getCache();
-  } catch {
-    importErrorMessage.value = "JSON 解析失败，请检查格式";
-  }
-}
+
+initAll();
+startClock();
+
+onMounted(() => {
+  appNode = document.querySelector("#app") as HTMLDivElement;
+  if (backgroundImageBase64.value && backgroundImageBase64.value.length > 0)
+    appNode.style.backgroundImage = `url(${backgroundImageBase64.value})`;
+});
+
+onUnmounted(() => {});
+
+watch(
+  () => customization.engine,
+  () => {
+    setEngine(customization.engine);
+  },
+);
+
+watch(
+  backgroundImageBase64,
+  (newUrl) => {
+    if (appNode) appNode.style.backgroundImage = `url(${newUrl})`;
+  },
+  { immediate: true },
+);
+
+watch(showModal_add, () => {
+  resetAddWebsite();
+});
+
+watch(showModal_edit, (newValue) => {
+  if (!newValue) resetEditWebsite();
+});
+
+watch(
+  () => customization.webList,
+  () => {
+    addToLocalStorage("webList", customization.webList);
+  },
+  { deep: true },
+);
+
+watch(showModal_setting, (newVal) => {
+  if (newVal) loadSystemFonts();
+});
 </script>
+
 <style lang="scss">
 /* ============================================================
    1. 页面布局（导航 / 主区 / 时间 / 搜索 / 页脚）
@@ -1098,7 +613,6 @@ function importConfirm() {
 .options-box {
   position: absolute;
   top: calc(100% + 8px);
-  /* 距离按钮下方 8px */
   left: 0;
   width: 100%;
   z-index: 100;
@@ -1106,7 +620,6 @@ function importConfirm() {
   border-radius: 6px;
   background: var(--bg_selection);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  /* 让毛玻璃边缘更精致 */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 
@@ -1265,129 +778,22 @@ function importConfirm() {
 }
 
 /* ============================================================
-   5. 弹窗内容（表单 / 背景设置 / 页面跳转 / 删除确认）
+   5. 删除确认弹窗
    ============================================================ */
-.list-item {
-  h2 {
-    font-size: clamp(1.5rem, 1.5vw, 2rem);
-    transition: all 0.3s ease;
-  }
-
-  &:has(input[type="text"]:focus) h2 {
-    color: var(--color_mizuki);
-  }
-}
-
-.list-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-
+.delete-text {
   h1 {
     font-size: clamp(2rem, 2vw, 4rem);
   }
 
-  input[type="text"] {
-    box-sizing: border-box;
-    border-radius: 3px;
-    height: 3rem;
-    width: 100%;
-    border: 1px solid var(--text-h);
-    padding: 0 0.5rem;
-    flex: 8;
-    background: none;
-    outline: none;
-    font-size: 2rem;
-    color: var(--text);
-    transition: all 0.3s ease;
-
-    &:focus {
-      border-color: var(--color_mizuki);
-    }
-  }
-}
-
-.setBackgroundImg {
-  width: 100%;
-
-  .bg-preview {
-    display: block;
-    position: relative;
-    width: 80%;
-    // max-width: 320px;
-    aspect-ratio: 16 / 9;
-    margin: 1rem 0;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--text-h);
-
-    .bg-preview-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .bg-preview-mask {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      background-color: rgba(0, 0, 0, 0.4);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-
-      .mask-action {
-        color: #fff;
-        font-size: clamp(1.5rem, 1.5vw, 2rem);
-        background: none;
-        border: none;
-        padding: 0.3rem 0.5rem;
-        transition: all 0.3s ease;
-        aspect-ratio: 1 / 1;
-        width: 15%;
-        min-width: 50px;
-        max-width: 100px;
-        cursor: pointer;
-
-        svg {
-          width: 100%;
-          height: 100%;
-          fill: currentColor;
-        }
-
-        &:hover {
-          color: var(--color_mizuki);
-        }
-
-        &:active {
-          transform: scale(0.95);
-        }
-      }
-
-      .mask-divider {
-        width: 1px;
-        align-self: stretch;
-        margin: 20% 0;
-        background-color: rgba(255, 255, 255, 0.5);
-      }
-
-      input[type="file"] {
-        display: none;
-      }
-    }
-
-    &:hover .bg-preview-mask {
-      opacity: 1;
-    }
+  p {
+    margin-top: 3rem;
+    font-size: clamp(1.5rem, 1.5vw, 2rem);
   }
 }
 
 /* ============================================================
-    6. 常用 URL 网格（可拖拽排序）
-    ============================================================ */
+   6. 常用 URL 网格（可拖拽排序）
+   ============================================================ */
 .container {
   border-radius: 2rem;
   box-sizing: border-box;
@@ -1411,237 +817,7 @@ function importConfirm() {
 }
 
 /* ============================================================
-    7. 弹窗补充样式（页面跳转 / 删除确认）
-    ============================================================ */
-.page-redirect {
-  margin: 2rem 0;
-  height: fit-content;
-  font-size: clamp(1.5rem, 1.5vw, 2rem);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-
-  &-option {
-    width: fit-content;
-    height: fit-content;
-    padding: 0.5rem;
-
-    input[type="radio"] {
-      cursor: pointer;
-    }
-
-    input[type="radio"]:checked {
-      accent-color: var(--color_mizuki);
-    }
-
-    label {
-      cursor: pointer;
-    }
-  }
-}
-
-.delete-text {
-  h1 {
-    font-size: clamp(2rem, 2vw, 4rem);
-  }
-
-  p {
-    margin-top: 3rem;
-    font-size: clamp(1.5rem, 1.5vw, 2rem);
-  }
-}
-
-.blur-setting {
-  input[type="range"] {
-    flex: 1;
-    cursor: pointer;
-    accent-color: var(--color_mizuki);
-  }
-
-  .blur-value {
-    min-width: 4rem;
-    text-align: right;
-  }
-}
-
-.font-setting {
-  position: relative;
-
-  .font-select {
-    height: 2rem;
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    font-size: clamp(1.3rem, 1.3vw, 1.8rem);
-    padding: 0.3rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--bg_selection_hover);
-    background: var(--bg_search);
-    color: var(--text);
-    user-select: none;
-    transition: border 0.3s ease;
-
-    .font-select-arrow {
-      font-size: 1.2rem;
-      margin-left: 0.5rem;
-      opacity: 0.6;
-    }
-
-    &:hover {
-      border-color: var(--color_mizuki);
-    }
-  }
-
-  .font-dropdown-box {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    z-index: 200;
-    max-height: 10vh;
-    overflow-y: auto;
-    border-radius: 6px;
-    background: var(--bg_selection);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    .font-dropdown-item {
-      padding: 6px 8px;
-      cursor: pointer;
-      font-size: clamp(1.2rem, 1.2vw, 1.6rem);
-      transition: background 0.2s;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-
-      &.active {
-        color: var(--color_mizuki);
-      }
-
-      &:hover {
-        background: var(--bg_selection_hover);
-      }
-    }
-  }
-
-  .font-preview {
-    min-width: 3rem;
-    text-align: right;
-    font-size: clamp(1.5rem, 1.5vw, 2rem);
-  }
-}
-
-/* ============================================================
-   8. 导入 / 导出配置
-   ============================================================ */
-.config-import-export {
-  display: flex;
-  gap: 1rem;
-  margin: 2rem 0 0 0;
-  justify-content: flex-start;
-
-  .btn-export,
-  .btn-import {
-    padding: 6px 16px;
-    cursor: pointer;
-    border-radius: 6px;
-    border: 1px solid var(--text-h);
-    font-size: clamp(1.2rem, 1.2vw, 1.6rem);
-    background: none;
-    color: var(--text);
-    transition: all 0.3s ease;
-
-    &:hover {
-      border-color: var(--color_mizuki);
-      color: var(--color_mizuki);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-}
-
-.import-container {
-  h1 {
-    font-size: clamp(2rem, 2vw, 4rem);
-  }
-
-  .import-tip {
-    margin: 1rem 0;
-    font-size: clamp(1.2rem, 1.2vw, 1.6rem);
-    color: var(--text);
-  }
-
-  .import-textarea {
-    width: 100%;
-    height: 200px;
-    box-sizing: border-box;
-    resize: none;
-    padding: 0.8rem;
-    font-size: clamp(1.2rem, 1.2vw, 1.4rem);
-    font-family: var(--mono);
-    border-radius: 6px;
-    border: 1px solid var(--text-h);
-    background: var(--bg_search);
-    color: var(--text);
-    outline: none;
-    transition: border 0.3s ease;
-
-    &:focus {
-      border-color: var(--color_mizuki);
-    }
-  }
-
-  .import-file-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 1rem 0;
-
-    .btn-import-file {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 2rem;
-      padding: 6px 14px;
-      border-radius: 6px;
-      border: 1px solid var(--text-h);
-      font-size: clamp(1.2rem, 1.2vw, 1.5rem);
-      cursor: pointer;
-      color: var(--text);
-      transition: all 0.3s ease;
-
-      &:hover {
-        border-color: var(--color_mizuki);
-        color: var(--color_mizuki);
-      }
-
-      input[type="file"] {
-        display: none;
-      }
-    }
-
-    .import-file-name {
-      font-size: clamp(1.1rem, 1.1vw, 1.3rem);
-      color: var(--color_mizuki);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-
-  .import-error {
-    color: var(--color_alert);
-    font-size: clamp(1.1rem, 1.1vw, 1.4rem);
-    margin: 0.5rem 0 0 0;
-  }
-}
-
-/* ============================================================
-   9. 移动端适配 (max-width: 600px)
+   7. 移动端适配 (max-width: 600px)
    ============================================================ */
 @media screen and (max-width: 600px) {
   #app {
@@ -1755,51 +931,6 @@ function importConfirm() {
     gap: 3px;
     font-size: clamp(0.8rem, 3vw, 1.2rem);
     height: clamp(1.8rem, 5vh, 3.5rem);
-  }
-
-  .page-redirect {
-    flex-wrap: wrap;
-    font-size: clamp(1.2rem, 4vw, 1.8rem);
-    gap: 0.5rem;
-  }
-
-  .font-setting {
-    .font-dropdown-box {
-      max-height: 25vh;
-
-      .font-dropdown-item {
-        font-size: clamp(1rem, 3.5vw, 1.3rem);
-      }
-    }
-  }
-
-  .config-import-export {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-
-    .btn-export,
-    .btn-import {
-      flex: 1;
-      min-width: 80px;
-      text-align: center;
-    }
-  }
-
-  .import-container {
-    .import-textarea {
-      height: 150px;
-      font-size: 1.2rem;
-    }
-
-    .import-file-row {
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-  }
-  .setBackgroundImg {
-    .bg-preview {
-      width: 100%;
-    }
   }
 }
 </style>

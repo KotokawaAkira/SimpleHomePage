@@ -55,14 +55,25 @@ SimpleHomePage/
     ├── App.vue                # 根组件，仅渲染 MainPage
     ├── style.css              # 全局样式与 CSS 变量（明暗主题）
     ├── components/
-    │   ├── MainPage.vue       # 核心单页组件：时钟、搜索、网格、设置弹窗
+    │   ├── MainPage.vue       # 核心页面组件：时钟、搜索、快捷网格、弹窗调度
     │   ├── Modal.vue          # 通用弹窗组件（设置 / 添加 / 编辑 / 删除确认 / 导入复用）
     │   ├── CardView.vue       # 快捷链接卡片（favicon / 首字母头像）
-    │   └── DropDown.vue       # 通用下拉组件（搜索引擎切换 / 字体选择）
+    │   ├── DropDown.vue       # 通用下拉组件（搜索引擎切换 / 字体选择）
+    │   ├── SettingsModal.vue  # 设置弹窗内容（背景图片、主题、字体、模糊、透明度等）
+    │   ├── WebsiteFormModal.vue # 通用的添加/编辑网站表单弹窗
+    │   └── ImportModal.vue    # 导入配置弹窗
+    ├── composables/
+    │   ├── useTime.ts         # 时钟 reactive 状态 + 每秒更新定时器
+    │   ├── useSearch.ts       # 搜索输入、历史记录、搜索引擎切换
+    │   ├── useBackground.ts   # 背景图片加载 / 上传 / 恢复
+    │   ├── useSettings.ts     # 字体、颜色主题、模糊、透明度、跳转模式管理
+    │   ├── useWebList.ts      # 网站列表增删改及表单校验
+    │   └── useImportExport.ts # 配置 JSON 导入 / 导出
     ├── config/
     │   ├── searchConfig.ts    # 搜索引擎配置（必应 / 谷歌 / 百度）
     │   ├── redirectModeConfig.ts  # 页面跳转模式配置
-    │   └── colorSchemeConfig.ts   # 颜色主题模式配置（跟随系统 / 浅色 / 深色）
+    │   ├── colorSchemeConfig.ts   # 颜色主题模式配置（跟随系统 / 浅色 / 深色）
+    │   └── fontConfig.ts      # 默认字体列表（API 不可用时的降级方案）
     ├── types/
     │   └── types.ts           # 全部共享 TypeScript 类型
     └── assets/                # SVG 图标与默认背景图
@@ -82,13 +93,32 @@ SimpleHomePage/
 index.html → src/main.ts → App.vue → MainPage.vue
                                         ├── DropDown.vue（搜索引擎切换 / 字体选择）
                                         ├── CardView.vue（快捷链接卡片）
-                                        └── Modal.vue（复用于 5 个弹窗）
+                                        ├── Modal.vue（通用弹窗壳）
+                                        │   ├── SettingsModal.vue（设置内容）
+                                        │   ├── WebsiteFormModal.vue（添加/编辑表单）
+                                        │   └── ImportModal.vue（导入配置）
 ```
 
-- **`MainPage.vue`** 是应用的核心，集中承载了时钟、搜索框（含引擎切换下拉与搜索历史）、可拖拽的快捷入口网格，以及设置、添加网址、编辑网址、删除确认、导入配置五个弹窗的调用逻辑。
-- **`Modal.vue`** 是通用弹窗组件，通过 props 控制宽高、是否显示"确定"按钮、确定按钮是否禁用及确认回调。点击遮罩层空白处可关闭（通过 `mousedown`/`mouseup` 目标一致性判断，避免拖拽误关）。
+- **`MainPage.vue`** 是应用的核心页面，负责时钟、搜索框（含引擎切换与历史）、快捷入口网格的布局，以及弹窗状态调度。业务逻辑通过 6 个 composable 拆分到 `src/composables/` 中。
+- **`Modal.vue`** 是通用弹窗壳组件，通过 props 控制宽高、确定按钮及确认回调。点击遮罩层空白处可关闭（通过 `mousedown`/`mouseup` 目标一致性判断，避免拖拽误关）。
 - **`CardView.vue`** 是单个快捷链接卡片组件，展示 favicon 图标（或首字母头像）和网站名称，悬停显示编辑/删除按钮。
 - **`DropDown.vue`** 是通用下拉组件，支持 v-model 双向绑定和点击外部关闭，用于搜索引擎切换下拉和字体选择下拉。
+- **`SettingsModal.vue`** 封装设置弹窗内容：背景图片、页面跳转、颜色主题、字体选择、高斯模糊、背景透明度和配置导入/导出。
+- **`WebsiteFormModal.vue`** 是通用的网站表单组件，被添加和编辑两个弹窗复用，通过 v-model 双向绑定表单数据，内部不做业务逻辑。
+- **`ImportModal.vue`** 封装导入配置弹窗内容：JSON 文本输入区和文件选择。
+
+### 业务逻辑层（Composables）
+
+业务逻辑从 `MainPage.vue` 中提取到 `src/composables/`：
+
+| Composable | 职责 |
+|---|---|
+| `useTime` | 时钟 reactive 状态（MyDate 对象）及每秒刷新定时器 |
+| `useSearch` | 搜索输入文本、历史记录（最多 10 条）、搜索引擎加载与切换 |
+| `useBackground` | 背景图片 base64 的加载、上传（FileReader → chrome.storage/localStorage）、恢复默认 |
+| `useSettings` | 字体、颜色主题、高斯模糊、背景透明度、页面跳转模式——所有设置的加载、变更与持久化 |
+| `useWebList` | 网站列表 CRUD（含添加/编辑的表单合法性校验） |
+| `useImportExport` | 配置 JSON 导出（`toRaw` + Blob 下载）与导入（解析 + localStorage 批量写入） |
 
 ### 数据存储（`tools/useCache.ts`）
 
@@ -114,7 +144,7 @@ index.html → src/main.ts → App.vue → MainPage.vue
 ### 样式约定
 
 - SVG 通过 `vite-svg-loader` 作为 **Vue 组件**导入，例如 `import add from "../assets/add.svg"`，模板中以 `<component :is="add" />` 或直接 `<add />` 渲染。
-- 样式使用 SCSS。`MainPage.vue` 的样式大部分为非 scoped，按功能分区块组织；`Modal.vue` 使用 `<style scoped>`。
+- 样式使用 SCSS。`MainPage.vue` 中的样式为非 scoped（全局生效）；`Modal.vue`、`CardView.vue`、`SettingsModal.vue`、`WebsiteFormModal.vue`、`ImportModal.vue` 使用 `<style scoped>`。
 - 明暗主题通过 `src/style.css` 中的 CSS 自定义属性实现，深色变体位于 `@media (prefers-color-scheme: dark)` 内；手动切换主题时通过 `<html data-theme="light|dark">` 覆盖对应变量。
 - 毛玻璃模糊强度由 `--val_blur` 控制；卡片背景不透明度由 `--bg_mainbox_alpha` 控制（`--bg_mainbox` 拆分为 `--bg_mainbox_rgb` 与 `--bg_mainbox_alpha`，使不透明度可在明暗主题下独立调节）。
 
@@ -212,6 +242,10 @@ npm run preview
 ### 调整主题颜色
 
 编辑 `src/style.css` 中 `:root` 与深色模式 `@media` 块内的 CSS 变量。
+
+### 调整默认字体列表
+
+编辑 `src/config/fontConfig.ts`。当系统不支持 `queryLocalFonts()` API 时，将使用此文件中的字体列表作为降级方案。
 
 ---
 
