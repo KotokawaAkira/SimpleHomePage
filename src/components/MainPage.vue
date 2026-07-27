@@ -131,117 +131,107 @@
   </section>
 
   <!-- 设置弹窗 -->
-  <transition name="fade">
-    <Modal :show="showModal_setting" @close="closeModal_setting" width="35%">
-      <SettingsModal
-        :customization="customization"
-        :backgroundImageBase64="backgroundImageBase64"
-        :systemFonts="systemFonts"
-        @uploadBackground="uploadBackground"
-        @restoreImg="restoreImg"
-        @changeRedirectMode="(mode) => changeRedirectMode(mode, customization)"
-        @changeColorScheme="(mode) => changeColorScheme(mode, customization)"
-        @changeBlurValue="onChangeBlur"
-        @changeBgOpacity="onChangeBgOpacity"
-        @selectFont="(font) => selectFont(font, customization)"
-        @exportConfig="exportConfig(customization)"
-        @openImport="openImportModal"
-      />
-    </Modal>
-  </transition>
+  <Modal :show="showModal_setting" @close="closeModal_setting" width="35%">
+    <SettingsModal
+      :customization="customization"
+      :backgroundImageBase64="backgroundImageBase64"
+      :systemFonts="systemFonts"
+      @uploadBackground="uploadBackground"
+      @restoreImg="restoreImg"
+      @changeRedirectMode="(mode) => changeRedirectMode(mode, customization)"
+      @changeColorScheme="(mode) => changeColorScheme(mode, customization)"
+      @changeBlurValue="onChangeBlur"
+      @changeBgOpacity="onChangeBgOpacity"
+      @selectFont="(font) => selectFont(font, customization)"
+      @exportConfig="exportConfig(customization)"
+      @openImport="openImportModal"
+    />
+  </Modal>
 
   <!-- 添加常用URL弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_add"
-      :confirm="true"
-      :disabled="!isAddLegal"
-      width="30%"
-      minHeight="300px"
-      minWidth="300px"
-      :doConfirm="
-        () => {
-          addConfirm(customization);
-          showModal_add = false;
-        }
-      "
-      @close="showModal_add = false"
-    >
-      <WebsiteFormModal v-model="addWebsite" title="添加常用URL" />
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_add"
+    :confirm="true"
+    :disabled="!isAddLegal"
+    width="30%"
+    minHeight="300px"
+    minWidth="300px"
+    :doConfirm="
+      () => {
+        addConfirm(customization);
+        showModal_add = false;
+      }
+    "
+    @close="showModal_add = false"
+  >
+    <WebsiteFormModal v-model="addWebsite" title="添加常用URL" />
+  </Modal>
 
   <!-- 编辑弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_edit"
-      :confirm="true"
-      :disabled="!isEditLegal"
-      width="30%"
-      minHeight="300px"
-      minWidth="300px"
-      :doConfirm="
-        () => {
-          editConfirm(customization);
-          showModal_edit = false;
-        }
-      "
-      @close="showModal_edit = false"
-    >
-      <WebsiteFormModal v-model="editWebsite" title="编辑" />
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_edit"
+    :confirm="true"
+    :disabled="!isEditLegal"
+    width="30%"
+    minHeight="300px"
+    minWidth="300px"
+    :doConfirm="
+      () => {
+        editConfirm(customization);
+        showModal_edit = false;
+      }
+    "
+    @close="showModal_edit = false"
+  >
+    <WebsiteFormModal v-model="editWebsite" title="编辑" />
+  </Modal>
 
   <!-- 删除确认弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_delete"
-      :confirm="true"
-      width="25%"
-      minWidth="280px"
-      minHeight="160px"
-      :doConfirm="
-        () => {
-          deleteConfirm(customization);
-          showModal_delete = false;
-        }
-      "
-      @close="showModal_delete = false"
-    >
-      <div class="delete-container delete-text">
-        <h1>确认删除</h1>
-        <p>确定要删除吗？此操作不可撤销。</p>
-      </div>
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_delete"
+    :confirm="true"
+    width="25%"
+    minWidth="280px"
+    minHeight="160px"
+    :doConfirm="
+      () => {
+        deleteConfirm(customization);
+        showModal_delete = false;
+      }
+    "
+    @close="showModal_delete = false"
+  >
+    <div class="delete-container delete-text">
+      <h1>确认删除</h1>
+      <p>确定要删除吗？此操作不可撤销。</p>
+    </div>
+  </Modal>
 
   <!-- 导入配置弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_import"
-      :confirm="true"
-      :disabled="!importJsonValid"
-      width="35%"
-      minHeight="320px"
-      minWidth="300px"
-      :doConfirm="
-        () => {
-          importConfirm(initAll);
-          showModal_import = false;
-        }
-      "
-      disable
-      @close="showModal_import = false"
-    >
-      <ImportModal
-        :importJsonText="importJsonText"
-        :importFileName="importFileName"
-        :importErrorMessage="importErrorMessage"
-        @update:importJsonText="importJsonText = $event"
-        @onImportFile="onImportFileSelected"
-      />
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_import"
+    :confirm="true"
+    :disabled="!importJsonValid"
+    width="35%"
+    minHeight="320px"
+    minWidth="300px"
+    :doConfirm="
+      () => {
+        importConfirm(initAll);
+        showModal_import = false;
+      }
+    "
+    disable
+    @close="showModal_import = false"
+  >
+    <ImportModal
+      :importJsonText="importJsonText"
+      :importFileName="importFileName"
+      :importErrorMessage="importErrorMessage"
+      @update:importJsonText="importJsonText = $event"
+      @onImportFile="onImportFileSelected"
+    />
+  </Modal>
 </template>
 
 <script setup lang="ts">

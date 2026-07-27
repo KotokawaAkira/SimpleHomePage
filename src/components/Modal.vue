@@ -1,31 +1,33 @@
 <template>
-  <div v-if="show" class="modal-mask" @mousedown="onMaskMouseDown" @mouseup="onMaskMouseUp">
-    <div
-      class="modal-container box_bg"
-      :style="{
-        width: props.width,
-        height: props.height,
-        minWidth: props.minWidth,
-        minHeight: props.minHeight,
-      }"
-    >
-      <div class="modal-content modify-scroll-bar" :style="{ overflowY: props.contentOverflow ? 'scroll' : 'unset' }">
-        <slot></slot>
-      </div>
+  <Transition name="modal">
+    <div v-if="show" class="modal-mask" @mousedown="onMaskMouseDown" @mouseup="onMaskMouseUp">
+      <div
+        class="modal-container box_bg"
+        :style="{
+          width: props.width,
+          height: props.height,
+          minWidth: props.minWidth,
+          minHeight: props.minHeight,
+        }"
+      >
+        <div class="modal-content modify-scroll-bar" :style="{ overflowY: props.contentOverflow ? 'scroll' : 'unset' }">
+          <slot></slot>
+        </div>
 
-      <div class="modal-button-list">
-        <button
-          class="btn confirm"
-          v-if="props.confirm"
-          :disabled="props.disabled"
-          @click="confirm"
-        >
-          确定
-        </button>
-        <button class="btn" @click="closeModal">关闭</button>
+        <div class="modal-button-list">
+          <button
+            class="btn confirm"
+            v-if="props.confirm"
+            :disabled="props.disabled"
+            @click="confirm"
+          >
+            确定
+          </button>
+          <button class="btn" @click="closeModal">关闭</button>
+        </div>
       </div>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script lang="ts" setup>
@@ -85,6 +87,29 @@ const confirm = () => {
   z-index: 1000; /* 确保在最顶层 */
 }
 
+/* 蒙版只做透明度（不可用 transform，否则破坏 position:fixed） */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+/* 弹窗容器：透明度 + 上滑（通过后代选择器，不受蒙版影响） */
+.modal-enter-active .modal-container,
+.modal-leave-active .modal-container {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.modal-enter-from .modal-container,
+.modal-leave-to .modal-container {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 /* 弹窗容器 */
 .modal-container {
   width: 50%;
@@ -95,7 +120,6 @@ const confirm = () => {
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
   overflow: hidden; /* 防止内容溢出圆角 */
   color: var(--text);
   background-color: var(--bg_modal);

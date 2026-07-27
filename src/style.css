@@ -70,7 +70,7 @@
     --bg_search: rgba(50, 50, 50, 0.8);
     --search-border: #494949;
 
-    --search_logo: #757575;
+    --search_logo: #dddddd;
     --bg_selection: #333333c0;
     --bg_selection_hover: #525252;
 
@@ -131,7 +131,7 @@ html[data-theme="dark"] {
   --bg_mainbox_rgb: 5, 5, 5;
   --bg_mainbox: rgba(var(--bg_mainbox_rgb), var(--bg_mainbox_alpha));
   --bg_search: rgba(50, 50, 50, 0.8);
-  --search_logo: #757575;
+  --search_logo: #dddddd;
   --bg_selection: #333333c0;
   --bg_selection_hover: #525252;
   --bg_modal: rgba(50, 50, 50, 0.95);
