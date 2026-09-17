@@ -164,7 +164,11 @@
     "
     @close="showModal_add = false"
   >
-    <WebsiteFormModal v-model="addWebsite" title="添加常用URL" />
+    <WebsiteFormModal
+      :modelValue="addWebsite"
+      @update:input-value="updateInputValue"
+      title="添加常用URL"
+    />
   </Modal>
 
   <!-- 编辑弹窗 -->
@@ -183,7 +187,11 @@
     "
     @close="showModal_edit = false"
   >
-    <WebsiteFormModal v-model="editWebsite" title="编辑" />
+    <WebsiteFormModal
+      :modelValue="editWebsite"
+      @update:input-value="updateInputValue"
+      title="编辑"
+    />
   </Modal>
 
   <!-- 删除确认弹窗 -->
@@ -262,7 +270,7 @@ import { useImportExport } from "../composables/useImportExport";
 
 let appNode: HTMLDivElement | undefined;
 
-const { time, timeString, startClock,stopClock } = useTime();
+const { time, timeString, startClock, stopClock } = useTime();
 
 const {
   inputText,
@@ -371,6 +379,19 @@ function closeModal_setting() {
 function openImportModal() {
   resetImport();
   showModal_import.value = true;
+}
+
+function updateInputValue(inputValue: { webName: string; url: string; iconUrl?: string }) {
+  if (showModal_add.value) {
+    addWebsite.webName = inputValue.webName;
+    addWebsite.url = inputValue.url;
+    addWebsite.iconUrl = inputValue.iconUrl;
+  } else if (showModal_edit.value) {
+    editWebsite.webName = inputValue.webName;
+    editWebsite.url = inputValue.url;
+    editWebsite.iconUrl = inputValue.iconUrl;
+  }
+  
 }
 
 initAll();
