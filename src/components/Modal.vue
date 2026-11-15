@@ -161,8 +161,8 @@ const confirm = () => {
 }
 .confirm {
   &:not(:disabled):hover {
-    border-color: var(--color_mizuki);
-    color: var(--color_mizuki);
+    border-color: var(--color_theme);
+    color: var(--color_theme);
   }
   &:disabled {
     border-color: var(--btn_disable);

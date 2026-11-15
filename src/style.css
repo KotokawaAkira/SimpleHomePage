@@ -15,7 +15,10 @@
   --heading: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
+  /* 默认主题色（--color_mizuki 亦作为自定义颜色的默认值） */
   --color_mizuki: #ddaacc;
+  /* 实际生效的主题色，由设置面板动态覆盖 */
+  --color_theme: var(--color_mizuki);
   --color_alert:#ff1f1f;
   --bg_shadow_up: rgba(200, 200, 200, 0.01);
   --bg_shadow_down: rgba(200, 200, 200, 0.5);
@@ -180,5 +183,5 @@ button {
   border-radius: 2rem;
 }
 .modify-scroll-bar::-webkit-scrollbar-thumb:hover {
-  background: var(--color_mizuki);
+  background: var(--color_theme);
 }

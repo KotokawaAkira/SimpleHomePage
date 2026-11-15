@@ -79,7 +79,7 @@ const inputValueChange = (e: Event) => {
     transition: all 0.3s ease;
 
     &:focus {
-      border-color: var(--color_mizuki);
+      border-color: var(--color_theme);
     }
   }
 }
@@ -91,7 +91,7 @@ const inputValueChange = (e: Event) => {
   }
 
   &:has(input[type="text"]:focus) h2 {
-    color: var(--color_mizuki);
+    color: var(--color_theme);
   }
 }
 </style>

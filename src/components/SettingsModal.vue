@@ -118,6 +118,33 @@
       >
     </div>
 
+    <!-- 配色方案 -->
+    <div class="page-redirect theme-color-setting">
+      <div>配色方案:</div>
+      <div
+        v-for="item in ThemeColorConfig"
+        :key="item.value"
+        class="page-redirect-option"
+        @click="$emit('changeThemeColorMode', item)"
+      >
+        <input
+          type="radio"
+          name="mode-theme-color"
+          :id="`theme-${item.value}`"
+          :value="item.value"
+          :checked="customization.themeColorMode.value === item.value"
+          @change="$emit('changeThemeColorMode', item)"
+        /><label :for="`theme-${item.value}`">{{ item.modeName }}</label>
+        <span
+          v-if="item.value === 2"
+          class="theme-color-swatch"
+          :style="{ backgroundColor: customization.customThemeColor }"
+          :title="`自定义颜色：${customization.customThemeColor}（点击修改）`"
+          @click.stop="$emit('openThemeColorPicker')"
+        ></span>
+      </div>
+    </div>
+
     <!-- 高斯模糊 -->
     <div class="page-redirect blur-setting">
       <div>高斯模糊:</div>
@@ -127,6 +154,7 @@
         max="30"
         step="1"
         :value="customization.blurValue"
+        :style="{ '--range-progress': `${(customization.blurValue / 30) * 100}%` }"
         @input="
           $emit(
             'changeBlurValue',
@@ -146,6 +174,7 @@
         max="1"
         step="0.05"
         :value="customization.bgOpacity"
+        :style="{ '--range-progress': `${customization.bgOpacity * 100}%` }"
         @input="
           $emit(
             'changeBgOpacity',
@@ -175,9 +204,11 @@ import type {
   userCustomization,
   RedirectMode,
   ColorSchemeMode,
+  ThemeColorMode,
 } from "../types/types";
 import RedirectModeConfig from "../config/redirectModeConfig";
 import ColorSchemeConfig from "../config/colorSchemeConfig";
+import ThemeColorConfig from "../config/themeColorConfig";
 
 const props = defineProps<{
   customization: userCustomization;
@@ -191,6 +222,8 @@ const emit = defineEmits<{
   restoreImg: [];
   changeRedirectMode: [mode: RedirectMode];
   changeColorScheme: [mode: ColorSchemeMode];
+  changeThemeColorMode: [mode: ThemeColorMode];
+  openThemeColorPicker: [];
   changeBlurValue: [value: number];
   changeBgOpacity: [value: number];
   selectFont: [font: string];
@@ -275,7 +308,7 @@ watch(
         }
 
         &:hover {
-          color: var(--color_mizuki);
+          color: var(--color_theme);
         }
 
         &:active {
@@ -319,7 +352,7 @@ watch(
     }
 
     input[type="radio"]:checked {
-      accent-color: var(--color_mizuki);
+      accent-color: var(--color_theme);
     }
 
     label {
@@ -331,8 +364,36 @@ watch(
 .blur-setting {
   input[type="range"] {
     flex: 1;
+    height: 2rem;
+    box-sizing: border-box;
     cursor: pointer;
-    accent-color: var(--color_mizuki);
+    background: none;
+    border: none;
+    accent-color: var(--color_theme);
+    -webkit-appearance: none;
+    appearance: none;
+
+    // 边框/背景只包住进度条，圆点上下露出
+    &::-webkit-slider-runnable-track {
+      height: 0.6rem;
+      border-radius: 0.3rem;
+      background: linear-gradient(
+        to right,
+        var(--color_theme) 0 var(--range-progress),
+        var(--bg_search) var(--range-progress) 100%
+      );
+      box-shadow: inset 0 0 0 1px var(--bg_selection_hover);
+    }
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 1.2rem;
+      height: 1.2rem;
+      margin-top: -0.3rem;
+      border-radius: 50%;
+      background: var(--color_theme);
+    }
   }
 
   .blur-value {
@@ -367,7 +428,7 @@ watch(
     }
 
     &:hover {
-      border-color: var(--color_mizuki);
+      border-color: var(--color_theme);
     }
   }
 
@@ -394,7 +455,7 @@ watch(
       text-overflow: ellipsis;
 
       &.active {
-        color: var(--color_mizuki);
+        color: var(--color_theme);
       }
 
       &:hover {
@@ -407,6 +468,31 @@ watch(
     min-width: 3rem;
     text-align: right;
     font-size: clamp(1.5rem, 1.5vw, 2rem);
+  }
+}
+
+.theme-color-setting {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+
+  .theme-color-swatch {
+    display: inline-block;
+    width: 1.6rem;
+    height: 1.6rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    box-shadow: 0 0 0 1px var(--bg_selection_hover);
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:hover {
+      transform: scale(1.12);
+      box-shadow: 0 0 0 2px var(--color_theme);
+    }
   }
 }
 
@@ -428,8 +514,8 @@ watch(
     transition: all 0.3s ease;
 
     &:hover {
-      border-color: var(--color_mizuki);
-      color: var(--color_mizuki);
+      border-color: var(--color_theme);
+      color: var(--color_theme);
     }
 
     &:active {
