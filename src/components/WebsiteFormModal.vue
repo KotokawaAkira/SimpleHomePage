@@ -5,28 +5,27 @@
       <h2>名称 *</h2>
       <input
         type="text"
+        data-name="webName"
         :value="modelValue.webName"
-        @input="
-          onFieldChange('webName', ($event.target as HTMLInputElement).value)
-        "
+        @input="inputValueChange"
       />
     </div>
     <div class="list-item">
       <h2>URL *</h2>
       <input
         type="text"
+        data-name="url"
         :value="modelValue.url"
-        @input="onFieldChange('url', ($event.target as HTMLInputElement).value)"
+        @input="inputValueChange"
       />
     </div>
     <div class="list-item">
       <h2>图标URL</h2>
       <input
         type="text"
-        :value="modelValue.iconUrl ?? ''"
-        @input="
-          onFieldChange('iconUrl', ($event.target as HTMLInputElement).value)
-        "
+        data-name="iconUrl"
+        :value="modelValue.iconUrl"
+        @input="inputValueChange"
       />
     </div>
   </div>
@@ -41,12 +40,18 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "update:modelValue": [value: FrequentWebsite];
+  "update:inputValue": [
+    inputValue: { webName: string; url: string; iconUrl?: string },
+  ];
 }>();
-
-function onFieldChange(field: keyof FrequentWebsite, value: string) {
-  emit("update:modelValue", { ...props.modelValue, [field]: value });
-}
+const inputValueChange = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const name = target.getAttribute("data-name") as keyof FrequentWebsite;
+  emit("update:inputValue", {
+    ...props.modelValue,
+    [name]: target.value.trim(),
+  });
+};
 </script>
 
 <style scoped lang="scss">
@@ -74,7 +79,7 @@ function onFieldChange(field: keyof FrequentWebsite, value: string) {
     transition: all 0.3s ease;
 
     &:focus {
-      border-color: var(--color_mizuki);
+      border-color: var(--color_theme);
     }
   }
 }
@@ -86,7 +91,7 @@ function onFieldChange(field: keyof FrequentWebsite, value: string) {
   }
 
   &:has(input[type="text"]:focus) h2 {
-    color: var(--color_mizuki);
+    color: var(--color_theme);
   }
 }
 </style>

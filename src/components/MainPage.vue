@@ -67,7 +67,7 @@
                 @mousedown.prevent="selectHistoryItem(item, customization)"
               >
                 <div class="history-text-container">
-                  <span class="history-text">{{ item }}</span>
+                  <span class="history-text" :title="item">{{ item }}</span>
                 </div>
                 <button
                   class="history-delete"
@@ -131,117 +131,130 @@
   </section>
 
   <!-- 设置弹窗 -->
-  <transition name="fade">
-    <Modal :show="showModal_setting" @close="closeModal_setting" width="35%">
-      <SettingsModal
-        :customization="customization"
-        :backgroundImageBase64="backgroundImageBase64"
-        :systemFonts="systemFonts"
-        @uploadBackground="uploadBackground"
-        @restoreImg="restoreImg"
-        @changeRedirectMode="(mode) => changeRedirectMode(mode, customization)"
-        @changeColorScheme="(mode) => changeColorScheme(mode, customization)"
-        @changeBlurValue="onChangeBlur"
-        @changeBgOpacity="onChangeBgOpacity"
-        @selectFont="(font) => selectFont(font, customization)"
-        @exportConfig="exportConfig(customization)"
-        @openImport="openImportModal"
-      />
-    </Modal>
-  </transition>
+  <Modal :show="showModal_setting" @close="closeModal_setting" width="35%">
+    <SettingsModal
+      :customization="customization"
+      :backgroundImageBase64="backgroundImageBase64"
+      :systemFonts="systemFonts"
+      @uploadBackground="uploadBackground"
+      @restoreImg="restoreImg"
+      @changeRedirectMode="(mode) => changeRedirectMode(mode, customization)"
+      @changeColorScheme="(mode) => changeColorScheme(mode, customization)"
+      @changeThemeColorMode="changeThemeColorMode"
+      @openThemeColorPicker="openThemeColorPicker"
+      @changeBlurValue="onChangeBlur"
+      @changeBgOpacity="onChangeBgOpacity"
+      @selectFont="(font) => selectFont(font, customization)"
+      @exportConfig="exportConfig(customization)"
+      @openImport="openImportModal"
+    />
+  </Modal>
+
+  <!-- 自定义主题色弹窗 -->
+  <Modal
+    :show="showModal_themeColor"
+    :confirm="true"
+    width="24%"
+    minWidth="260px"
+    :doConfirm="confirmThemeColor"
+    @close="showModal_themeColor = false"
+  >
+    <div class="theme-color-modal-title">自定义主题色</div>
+    <ThemeColorPicker v-model="draftThemeColor" />
+  </Modal>
 
   <!-- 添加常用URL弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_add"
-      :confirm="true"
-      :disabled="!isAddLegal"
-      width="30%"
-      minHeight="300px"
-      minWidth="300px"
-      :doConfirm="
-        () => {
-          addConfirm(customization);
-          showModal_add = false;
-        }
-      "
-      @close="showModal_add = false"
-    >
-      <WebsiteFormModal v-model="addWebsite" title="添加常用URL" />
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_add"
+    :confirm="true"
+    :disabled="!isAddLegal"
+    width="30%"
+    minHeight="300px"
+    minWidth="300px"
+    :doConfirm="
+      () => {
+        addConfirm(customization);
+        showModal_add = false;
+      }
+    "
+    @close="showModal_add = false"
+  >
+    <WebsiteFormModal
+      :modelValue="addWebsite"
+      @update:input-value="updateInputValue"
+      title="添加常用URL"
+    />
+  </Modal>
 
   <!-- 编辑弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_edit"
-      :confirm="true"
-      :disabled="!isEditLegal"
-      width="30%"
-      minHeight="300px"
-      minWidth="300px"
-      :doConfirm="
-        () => {
-          editConfirm(customization);
-          showModal_edit = false;
-        }
-      "
-      @close="showModal_edit = false"
-    >
-      <WebsiteFormModal v-model="editWebsite" title="编辑" />
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_edit"
+    :confirm="true"
+    :disabled="!isEditLegal"
+    width="30%"
+    minHeight="300px"
+    minWidth="300px"
+    :doConfirm="
+      () => {
+        editConfirm(customization);
+        showModal_edit = false;
+      }
+    "
+    @close="showModal_edit = false"
+  >
+    <WebsiteFormModal
+      :modelValue="editWebsite"
+      @update:input-value="updateInputValue"
+      title="编辑"
+    />
+  </Modal>
 
   <!-- 删除确认弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_delete"
-      :confirm="true"
-      width="25%"
-      minWidth="280px"
-      minHeight="160px"
-      :doConfirm="
-        () => {
-          deleteConfirm(customization);
-          showModal_delete = false;
-        }
-      "
-      @close="showModal_delete = false"
-    >
-      <div class="delete-container delete-text">
-        <h1>确认删除</h1>
-        <p>确定要删除吗？此操作不可撤销。</p>
-      </div>
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_delete"
+    :confirm="true"
+    width="25%"
+    minWidth="280px"
+    minHeight="160px"
+    :doConfirm="
+      () => {
+        deleteConfirm(customization);
+        showModal_delete = false;
+      }
+    "
+    @close="showModal_delete = false"
+  >
+    <div class="delete-container delete-text">
+      <h1>确认删除</h1>
+      <p>确定要删除吗？此操作不可撤销。</p>
+    </div>
+  </Modal>
 
   <!-- 导入配置弹窗 -->
-  <transition name="fade">
-    <Modal
-      :show="showModal_import"
-      :confirm="true"
-      :disabled="!importJsonValid"
-      width="35%"
-      minHeight="320px"
-      minWidth="300px"
-      :doConfirm="
-        () => {
-          importConfirm(initAll);
-          showModal_import = false;
-        }
-      "
-      disable
-      @close="showModal_import = false"
-    >
-      <ImportModal
-        :importJsonText="importJsonText"
-        :importFileName="importFileName"
-        :importErrorMessage="importErrorMessage"
-        @update:importJsonText="importJsonText = $event"
-        @onImportFile="onImportFileSelected"
-      />
-    </Modal>
-  </transition>
+  <Modal
+    :show="showModal_import"
+    :confirm="true"
+    :disabled="!importJsonValid"
+    width="35%"
+    minHeight="320px"
+    minWidth="300px"
+    :doConfirm="
+      () => {
+        importConfirm(initAll);
+        showModal_import = false;
+      }
+    "
+    disable
+    @close="showModal_import = false"
+  >
+    <ImportModal
+      :importJsonText="importJsonText"
+      :importFileName="importFileName"
+      :importErrorMessage="importErrorMessage"
+      @update:importJsonText="importJsonText = $event"
+      @onImportFile="onImportFileSelected"
+    />
+  </Modal>
 </template>
 
 <script setup lang="ts">
@@ -254,7 +267,11 @@ import settings from "../assets/settings.svg";
 import add from "../assets/add.svg";
 
 import { EnginConfig } from "../config/searchConfig";
-import type { userCustomization } from "../types/types";
+import {
+  DEFAULT_THEME_COLOR,
+  DEFAULT_THEME_COLOR_MODE,
+} from "../config/themeColorConfig";
+import type { ThemeColorMode, userCustomization } from "../types/types";
 import { addToLocalStorage, setEngine } from "../../tools/useCache";
 import Modal from "./Modal.vue";
 import CardView from "./CardView.vue";
@@ -262,6 +279,7 @@ import DropDown from "./DropDown.vue";
 import SettingsModal from "./SettingsModal.vue";
 import WebsiteFormModal from "./WebsiteFormModal.vue";
 import ImportModal from "./ImportModal.vue";
+import ThemeColorPicker from "./ThemeColorPicker.vue";
 
 import { useTime } from "../composables/useTime";
 import { useSearch } from "../composables/useSearch";
@@ -272,7 +290,7 @@ import { useImportExport } from "../composables/useImportExport";
 
 let appNode: HTMLDivElement | undefined;
 
-const { time, timeString, startClock,stopClock } = useTime();
+const { time, timeString, startClock, stopClock } = useTime();
 
 const {
   inputText,
@@ -300,6 +318,9 @@ const {
   changeColorScheme,
   changeBlur,
   changeBgOpacity,
+  applyThemeColor,
+  changeThemeColorMode: applyThemeColorMode,
+  changeCustomThemeColor,
   loadSystemFonts,
 } = useSettings();
 
@@ -335,6 +356,10 @@ const showModal_edit = ref(false);
 const showModal_delete = ref(false);
 const showModal_import = ref(false);
 
+// 自定义主题色弹窗
+const showModal_themeColor = ref(false);
+const draftThemeColor = ref(DEFAULT_THEME_COLOR);
+
 const customization = reactive<userCustomization>({
   webList: [],
   engine: EnginConfig[0],
@@ -343,6 +368,8 @@ const customization = reactive<userCustomization>({
   blurValue: 6,
   bgOpacity: 0.5,
   fontFamily: "system-ui",
+  themeColorMode: DEFAULT_THEME_COLOR_MODE,
+  customThemeColor: DEFAULT_THEME_COLOR,
 });
 
 function initAll() {
@@ -363,6 +390,28 @@ function onChangeBgOpacity(value: number) {
   changeBgOpacity(customization);
 }
 
+function openThemeColorPicker() {
+  draftThemeColor.value = customization.customThemeColor;
+  showModal_themeColor.value = true;
+}
+
+function changeThemeColorMode(mode: ThemeColorMode) {
+  applyThemeColorMode(mode, customization, backgroundImageBase64.value);
+}
+
+function confirmThemeColor() {
+  changeCustomThemeColor(
+    draftThemeColor.value,
+    customization,
+    backgroundImageBase64.value,
+  );
+  applyThemeColorMode(
+    DEFAULT_THEME_COLOR_MODE,
+    customization,
+    backgroundImageBase64.value,
+  );
+}
+
 function goWebsite(url: string) {
   switch (customization.redirectMode.value) {
     case 0:
@@ -381,6 +430,19 @@ function closeModal_setting() {
 function openImportModal() {
   resetImport();
   showModal_import.value = true;
+}
+
+function updateInputValue(inputValue: { webName: string; url: string; iconUrl?: string }) {
+  if (showModal_add.value) {
+    addWebsite.webName = inputValue.webName;
+    addWebsite.url = inputValue.url;
+    addWebsite.iconUrl = inputValue.iconUrl;
+  } else if (showModal_edit.value) {
+    editWebsite.webName = inputValue.webName;
+    editWebsite.url = inputValue.url;
+    editWebsite.iconUrl = inputValue.iconUrl;
+  }
+  
 }
 
 initAll();
@@ -407,6 +469,9 @@ watch(
   backgroundImageBase64,
   (newUrl) => {
     if (appNode) appNode.style.backgroundImage = `url(${newUrl})`;
+    // 背景图片变化时，若使用「背景图片主题色」则重新取色
+    if (customization.themeColorMode.value === 1)
+      applyThemeColor(customization, newUrl);
   },
   { immediate: true },
 );
@@ -532,7 +597,7 @@ watch(showModal_setting, (newVal) => {
 
           &:focus-within {
             background-color: var(--bg_search);
-            border-color: var(--color_mizuki);
+            border-color: var(--color_theme);
             border-width: 1px;
             box-shadow: none;
           }
@@ -675,15 +740,16 @@ watch(showModal_setting, (newVal) => {
       display: flex;
       align-items: center;
       flex: 1;
+      min-width: 0;
       height: 100%;
 
       .history-text {
-        height: 100%;
+        flex: 1;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        display: flex;
-        align-items: center;
+        line-height: normal;
       }
     }
 
@@ -699,7 +765,7 @@ watch(showModal_setting, (newVal) => {
 
       &:hover {
         opacity: 1;
-        color: var(--color_mizuki);
+        color: var(--color_theme);
       }
     }
   }
@@ -782,6 +848,12 @@ watch(showModal_setting, (newVal) => {
 /* ============================================================
    5. 删除确认弹窗
    ============================================================ */
+.theme-color-modal-title {
+  font-size: clamp(2rem, 2vw, 3rem);
+  margin: 1rem 0 1rem 0;
+  color: var(--text-h);
+}
+
 .delete-text {
   h1 {
     font-size: clamp(2rem, 2vw, 4rem);

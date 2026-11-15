@@ -139,7 +139,7 @@ function getInitial(name: string) {
   .avatar-text {
     width: 60%;
     height: 60%;
-    background-color: var(--color_mizuki);
+    background-color: var(--color_theme);
     color: var(--code-bg);
     display: flex;
     align-items: center;

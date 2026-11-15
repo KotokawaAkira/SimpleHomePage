@@ -46,6 +46,11 @@ type ColorSchemeMode = {
   value: number;
   modeName: string;
 };
+// 主题色来源类型
+type ThemeColorMode = {
+  value: number;
+  modeName: string;
+};
 type userCustomization = {
   webList: FrequentWebsite[];
   engine: SearchEngine;
@@ -54,6 +59,8 @@ type userCustomization = {
   blurValue: number;
   bgOpacity: number;
   fontFamily: string;
+  themeColorMode: ThemeColorMode;
+  customThemeColor: string;
 };
 export type {
   MyDate,
@@ -63,5 +70,6 @@ export type {
   SearchEngine,
   RedirectMode,
   ColorSchemeMode,
+  ThemeColorMode,
   userCustomization,
 };

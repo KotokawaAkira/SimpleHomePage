@@ -65,7 +65,7 @@ defineEmits<{
     transition: border 0.3s ease;
 
     &:focus {
-      border-color: var(--color_mizuki);
+      border-color: var(--color_theme);
     }
   }
 
@@ -89,8 +89,8 @@ defineEmits<{
       transition: all 0.3s ease;
 
       &:hover {
-        border-color: var(--color_mizuki);
-        color: var(--color_mizuki);
+        border-color: var(--color_theme);
+        color: var(--color_theme);
       }
 
       input[type="file"] {
@@ -100,7 +100,7 @@ defineEmits<{
 
     .import-file-name {
       font-size: clamp(1.1rem, 1.1vw, 1.3rem);
-      color: var(--color_mizuki);
+      color: var(--color_theme);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
