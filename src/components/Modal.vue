@@ -133,7 +133,7 @@ const confirm = () => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 0.7rem 0 0;
+  padding: 0 0.7rem;
 }
 
 /* ============================================================

@@ -159,7 +159,7 @@
     :doConfirm="confirmThemeColor"
     @close="showModal_themeColor = false"
   >
-    <div class="theme-color-modal-title">自定义主题色</div>
+    <h1 class="theme-color-modal-title">自定义主题色</h1>
     <ThemeColorPicker v-model="draftThemeColor" />
   </Modal>
 
@@ -850,8 +850,7 @@ watch(showModal_setting, (newVal) => {
    ============================================================ */
 .theme-color-modal-title {
   font-size: clamp(2rem, 2vw, 3rem);
-  margin: 1rem 0 1rem 0;
-  color: var(--text-h);
+  // margin: 1.5 0;
 }
 
 .delete-text {
