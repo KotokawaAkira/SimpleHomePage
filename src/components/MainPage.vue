@@ -903,7 +903,7 @@ watch(showModal_setting, (newVal) => {
 
       &-box {
         width: 95%;
-        min-width: unset;
+        min-width: 360px;
         height: 30%;
         gap: 1rem;
         padding: 1.5rem 0 0 0;

@@ -112,10 +112,10 @@ const confirm = () => {
 
 /* 弹窗容器 */
 .modal-container {
-  width: 50%;
+  width: 60%;
   height: auto;
   max-height: 80vh;
-  padding: 2rem;
+  padding: 2rem 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -132,8 +132,9 @@ const confirm = () => {
 .modal-content {
   flex: 1;
   min-height: 0;
+  margin: 0 .1rem 0 1rem;
   overflow-y: auto;
-  padding: 0 0.7rem;
+  padding: 0 1.6rem 0 0.7rem;
 }
 
 /* ============================================================
@@ -143,7 +144,7 @@ const confirm = () => {
   display: flex;
   gap: 1rem;
   justify-content: end;
-  margin: 1.5rem 0 0 0;
+  margin: 1.5rem 2rem 0 0;
 }
 .btn {
   align-self: flex-end;
@@ -173,17 +174,17 @@ const confirm = () => {
 @media screen and (max-width: 600px) {
   .modal-container {
     width: 90% !important;
-    min-width: unset !important;
+    min-width: 360px !important;
     min-height: unset !important;
-    padding: 1.2rem;
+    padding: 1.2rem 0;
     max-height: 85vh;
     border-radius: 1.5rem;
   }
   .modal-content {
-    padding: 0 0.3rem 0 0;
+    padding: 0 .9rem 0 0;
   }
   .modal-button-list {
-    margin: 1rem 0 0 0;
+    margin: 1rem 1.2rem 0 0;
     gap: 0.6rem;
   }
   .btn {
